@@ -118,6 +118,19 @@ unknown = []
 system = platform.system()
 
 
+def zero_fix(s):
+    # 统一补0
+    if not s:
+        return s
+    # 删0
+    s = s.lstrip('0')
+    # 补0
+    s = s.zfill(2)
+    if '.' in s and s.index('.') == 1:
+        s = '0' + s
+    return s
+
+
 def get_season(parent_folder_name):
     # 获取季数
 
@@ -304,22 +317,41 @@ def get_season_and_ep(file_path):
                 ep = res_sub.group(1)
                 break
 
-    def zero_fix(s):
-        # 统一补0
-        if not s:
-            return s
-        # 删0
-        s = s.lstrip('0')
-        # 补0
-        s = s.zfill(2)
-        if '.' in s and s.index('.') == 1:
-            s = '0' + s
-        return s
-
     season = zero_fix(season)
     ep = zero_fix(ep)
 
     return season, ep
+
+
+def ep_offset_patch(file_path, ep):
+    # 多季集数修正
+    b = os.path.dirname(file_path.replace('\\', '/'))
+    while(b):
+        if not '/' in b:
+            break
+        b, fo = b.rsplit('/', 1)
+        if get_season(fo):
+            try:
+                if 'ENDEP.txt' in os.listdir(b + '/' + fo):
+                    with open(b + '/' + fo + '/' + 'ENDEP.txt') as f:
+                        offset = int(f.read().strip())
+                        if '.' in ep:
+                            ep_int, ep_tail = ep.split('.')
+                            ep_int = int(ep_int)
+                            if int(ep_int) >= offset:
+                                ep_int = ep_int - offset
+                                ep = str(ep_int) + '.' + ep_tail
+                                break
+                        else:
+                            ep_int = int(ep)
+                            if ep_int >= offset:
+                                ep = str(ep_int - offset)
+                                break
+            except Exception as e:
+                print('集数修正报错了', e)
+                return ep
+    return zero_fix(ep)
+
 
 if os.path.isdir(target_path):
     print('文件夹处理')
@@ -338,7 +370,7 @@ if os.path.isdir(target_path):
                 continue
 
             # 忽略部分文件
-            if name.lower() in ['season.nfo']:
+            if name.lower() in ['season.nfo', 'ENDEP.txt']:
                 continue
             file_name, ext = get_file_name_ext(name)
 
@@ -370,6 +402,8 @@ if os.path.isdir(target_path):
             print(season, ep)
             # 重命名
             if season and ep:
+                # 修正集数
+                ep = ep_offset_patch(file_path, ep)
                 new_name = 'S' + season + 'E' + ep + '.' + ext
                 print(new_name)
                 new_path = parent_folder_path + '/' + new_name
@@ -387,6 +421,8 @@ else:
     if ext.lower() in COMPOUND_EXTS:
         season, ep = get_season_and_ep(file_path)
         if season and ep:
+            # 修正集数
+            ep = ep_offset_patch(file_path, ep)
             new_name = 'S' + season + 'E' + ep + '.' + ext
             print(new_name)
             new_path = parent_folder_path + '\\' + new_name
