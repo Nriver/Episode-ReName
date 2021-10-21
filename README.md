@@ -1,10 +1,12 @@
 # Episode-ReName
+
 电视剧/番剧自动化重命名工具. 本工具可以对大部分资源进行重命名处理. 主要是给Emby, Jellyfin等播放器使用, 也可以配合和tmm削刮器使用. 
 
 请注意！需要重命名的文件必须在类似 `Season 1`, `s1` 的目录中才会被处理. 
 
 
 # 使用场景1-右键菜单
+
 右键菜单快速重命名
 1. 从[Release](https://github.com/Nriver/Episode-ReName/releases)直接下载最新的exe程序
 2. 修改 右键菜单 添加.reg 的exe路径并导入注册表
@@ -12,13 +14,15 @@
 注：可以多选进行批量操作. win10多选超过15个, 右键菜单会消失, 可以运行`win10 右键多文件限制修改.reg`将限制修改成999个. 
 
 # 使用场景2-结合qbitorrent下载
+
 可以在qbittorrent 中进行设置, 实现下载完成后自动重命名
-步骤①：选项—>BitTorrent—>做种限制—>做种0分钟—>暂停或删除做种
-步骤②：选项—>下载—>完成时运行外部程序—>命令行
+1. 选项—>BitTorrent—>做种限制—>做种0分钟—>暂停或删除做种
+2. 选项—>下载—>完成时运行外部程序—>命令行
 命令行：D:\Test\EpisodeReName.exe "%D" 15
-参数说明：①工具所在路径；②保存路径="%D"；③延时执行=秒
+参数说明：1.工具所在路径；2.保存路径="%D"；3.延时执行=秒
 
 # 使用场景3-命令行
+
 可以直接传入文件路径, 注意有空格的路径加双引号
 ```
 D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1"
@@ -30,6 +34,7 @@ D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1" 15
 ```
 
 # 脚本编译成可执行程序
+
 如果你想自己将python脚本打包成exe, 需要python3运行环境.
 安装[pyinstaller](https://github.com/pyinstaller/pyinstaller)模块. 
 可以使用
@@ -49,24 +54,27 @@ pyinstaller -F -w EpisodeReName.py
 ```
 
 # 强制的规范元数据结构
-①剧季文件夹：Season1 / Season 1 / s1 / S1
-②媒体源文件：SxxExx (.mkv / .mp4 等常见视频格式)
-③剧集元数据：SxxExx.nfo / SxxEPxx.nfo
-④外置字幕源：SxxExx.zh (.ass / .ssa / .srt)
-⑤剧集缩略图：SxxExx-thumb (.jpg / .png)
-⑥剧季元数据：season.nfo
+
+1. 剧季文件夹：Season1 / Season 1 / s1 / S1
+2. 媒体源文件：SxxExx (.mkv / .mp4 等常见视频格式)
+3. 剧集元数据：SxxExx.nfo / SxxEPxx.nfo
+4. 外置字幕源：SxxExx.zh (.ass / .ssa / .srt)
+5. 剧集缩略图：SxxExx-thumb (.jpg / .png)
+6. 剧季元数据：season.nfo
 
 # 工具主要功能和处理逻辑
-①对剧季命名以外的文件夹无效
-②根据保存的剧季目录命名集号
-③删除规范以外的多余元数据
-④下载完成后尝试命名并加.new后缀
-⑤删除可命名的同名文件达到换源目的
-⑥去除文件命名后的.new后缀名
-⑦如果④命名成功则继续执行⑤、⑥
-⑧如果④命名不成功则终止后续操作
+
+1. 对剧季命名以外的文件夹无效
+2. 根据保存的剧季目录命名集号
+3. 删除规范以外的多余元数据
+4. 下载完成后尝试命名并加.new后缀
+5. 删除可命名的同名文件达到换源目的
+6. 去除文件命名后的.new后缀名
+7. 如果4步命名成功则继续执行5, 6
+8. 如果第4步命名不成功则终止后续操作
 
 # 主要文件说明
+
 EpisodeReName.py
 重命名工具主程序
 
@@ -74,5 +82,7 @@ make_exe.bat
 将python脚本打包成exe, 依赖[pyinstaller](https://github.com/pyinstaller/pyinstaller)模块
 
 # 多季番剧tmdb集数适配
+
 对于有多季的番剧, 比如第一季有12集, 而第二季的第3集字幕组可能会写15集, 但是emby等工具使用tmdb进行削刮需要它的名字变成类似S02E03才会识别. 
+
 这时候可以在`Season XX`文件夹中添加一个`ALL.txt`文件, 里面写上一个数字, 比如12(第一季的总集数), 会在自动重命名的时候减掉这个数字, 也就是15-12=3, 最后变成S02E03.
