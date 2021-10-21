@@ -332,8 +332,8 @@ def ep_offset_patch(file_path, ep):
         b, fo = b.rsplit('/', 1)
         if get_season(fo):
             try:
-                if 'ENDEP.txt' in os.listdir(b + '/' + fo):
-                    with open(b + '/' + fo + '/' + 'ENDEP.txt') as f:
+                if 'ALL.txt' in os.listdir(b + '/' + fo):
+                    with open(b + '/' + fo + '/' + 'ALL.txt') as f:
                         offset = int(f.read().strip())
                         if '.' in ep:
                             ep_int, ep_tail = ep.split('.')
@@ -370,7 +370,7 @@ if os.path.isdir(target_path):
                 continue
 
             # 忽略部分文件
-            if name.lower() in ['season.nfo', 'ENDEP.txt']:
+            if name.lower() in ['season.nfo', 'ALL.txt']:
                 continue
             file_name, ext = get_file_name_ext(name)
 
