@@ -177,23 +177,23 @@ def get_season_and_ep(file_path):
         return None, None
 
     # 忽略已按规则命名的文件
-    pat = 'S\d{1,4}E\d{1,4}'
+    pat = 'S\d{1,4}E\d{1,4}(\.5)?'
     if re.match(pat, file_name):
         print('忽略')
         return None, None
 
     # 如果文件已经有 S01EP01 或者 S01E01 直接读取
-    pat = '[Ss](\d{1,4})[Ee](\d{1,4})'
+    pat = '[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
     res = re.findall(pat, file_name.upper())
     if res:
-        season, ep = res[0]
+        season, ep = res[0][0], res[0][1]
         season = str(int(season)).zfill(2)
         ep = str(int(ep)).zfill(2)
         return season, ep
-    pat = '[Ss](\d{1,4})[Ee][Pp](\d{1,4})'
+    pat = '[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
     res = re.findall(pat, file_name.upper())
     if res:
-        season, ep = res[0]
+        season, ep = res[0][0], res[0][1]
         season = str(int(season)).zfill(2)
         ep = str(int(ep)).zfill(2)
         return season, ep
@@ -217,13 +217,13 @@ def get_season_and_ep(file_path):
     # 内容
     patterns = [
         # 1到4位数字
-        '(\d{1,4})',
+        '(\d{1,4}(\.5)?)',
         # 特殊文字处理
-        '第(\d{1,4})集',
-        '第(\d{1,4})话',
-        '第(\d{1,4})話',
-        '[Ee][Pp](\d{1,4})',
-        '[Ee](\d{1,4})',
+        '第(\d{1,4}(\.5)?)集',
+        '第(\d{1,4}(\.5)?)话',
+        '第(\d{1,4}(\.5)?)話',
+        '[Ee][Pp](\d{1,4}(\.5)?)',
+        '[Ee](\d{1,4}(\.5)?)',
     ]
     # 括号和内容组合起来
     pats = []
@@ -259,13 +259,12 @@ def get_season_and_ep(file_path):
             # print(s)
             ep = None
 
-            # 兼容v2和.5格式 (需要测试)
+            # 兼容v2和.5格式 不兼容 9.33 格式
             # 12.5
             # 13.5
             # 10v2
             # 10.5v2
-            # 9.33
-            pat = '(\d{1,4}\.?\d{0,2})[Vv]?\d?'
+            pat = '(\d{1,4}(\.5)?)[Vv]?\d?'
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
@@ -273,16 +272,7 @@ def get_season_and_ep(file_path):
                 ep = res_sub.group(1)
                 return ep
 
-            # # 兼容v2格式
-            # pat = '(\d{1,4})[Vv ]\d$'
-            # ep = None
-            # res_sub = re.search(pat, s)
-            # if res_sub:
-            #     print(res_sub)
-            #     ep = res_sub.group(1)
-            #     return ep
-
-            pat = '\d{1,4}$'
+            pat = '\d{1,4}(\.5)?$'
             res_sub = re.search(pat, s)
             if res_sub:
                 print(res_sub)
@@ -297,7 +287,7 @@ def get_season_and_ep(file_path):
     if not ep:
         # 部分资源命名
         # 找 第x集
-        pat = '第(\d{1,4})[集话話]'
+        pat = '第(\d{1,4}(\.5)?)[集话話]'
         for y in res:
             y = y.strip()
             res_sub = re.search(pat, y)
@@ -306,7 +296,7 @@ def get_season_and_ep(file_path):
                 break
     if not ep:
         # 找 EPXX
-        pat = '[Ee][Pp](\d{1,4})'
+        pat = '[Ee][Pp](\d{1,4}(\.5)?)'
         for y in res:
             y = y.strip()
             res_sub = re.search(pat, y.upper())
@@ -348,7 +338,7 @@ if os.path.isdir(target_path):
                 continue
 
             # 忽略部分文件
-            if name.lower() in ['season.nfo', ]:
+            if name.lower() in ['season.nfo']:
                 continue
             file_name, ext = get_file_name_ext(name)
 
@@ -356,7 +346,7 @@ if os.path.isdir(target_path):
             if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
                 continue
 
-            res = re.findall('^S(\d{1,4})E(\d{1,4})', file_name.upper())
+            res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
             if res:
                 continue
             else:
