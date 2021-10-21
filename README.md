@@ -3,7 +3,7 @@
 
 
 # 使用方法
-1. 从release直接下载最新的exe程序
+1. 从[Release](https://github.com/Nriver/Episode-ReName/releases)直接下载最新的exe程序
 
 
 # 主要文件说明
