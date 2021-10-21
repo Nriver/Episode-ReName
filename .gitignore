@@ -1,3 +1,8 @@
+# nate's custom ignore
+.idea/
+*.log
+*.tmp
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
