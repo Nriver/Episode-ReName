@@ -140,6 +140,11 @@ def get_season(parent_folder_name):
     # 's2'
     # 'S2'
     season = None
+
+    if parent_folder_name == 'Specials':
+        # 兼容SP
+        return '0'
+
     try:
         if 'season ' in parent_folder_name.lower():
             s = str(int(parent_folder_name.lower().replace('season ', '').strip()))
@@ -237,6 +242,8 @@ def get_season_and_ep(file_path):
         '第(\d{1,4}(\.5)?)話',
         '[Ee][Pp](\d{1,4}(\.5)?)',
         '[Ee](\d{1,4}(\.5)?)',
+        # 兼容SP01等命名
+        '[Ss][Pp](\d{1,4}(\.5)?)',
     ]
     # 括号和内容组合起来
     pats = []

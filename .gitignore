@@ -3,6 +3,8 @@
 *.log
 *.tmp
 EpisodeReName.exe
+*.mkv
+*.mp4
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
