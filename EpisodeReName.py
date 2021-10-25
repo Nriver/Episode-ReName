@@ -361,7 +361,7 @@ def ep_offset_patch(file_path, ep):
                 for fn in os.listdir(b + '/' + fo):
                     if fn.lower() != 'all.txt':
                         continue
-                    with open(b + '/' + fo + '/' + fn) as f:
+                    with open(b + '/' + fo + '/' + fn, encoding='utf-8') as f:
                         offset = int(f.read().strip())
                         break
             except Exception as e:
@@ -374,7 +374,7 @@ def ep_offset_patch(file_path, ep):
         qrm_config = None
         if os.path.exists('config_ern.json'):
             try:
-                with open('config_ern.json') as f:
+                with open('config_ern.json', encoding='utf-8') as f:
                     qrm_config_file = json.loads(f.read())['qrm_config_file']
                 with open(qrm_config_file, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
@@ -382,7 +382,7 @@ def ep_offset_patch(file_path, ep):
                 print('config_ern.json 读取错误', e)
         elif os.path.exists('config.json'):
             try:
-                with open('config.json') as f:
+                with open('config.json', encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
             except Exception as e:
                 print(e)
