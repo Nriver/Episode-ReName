@@ -5,6 +5,7 @@ import platform
 import subprocess
 import time
 from itertools import product
+import json
 
 # print('''
 #     -- 警告 --
@@ -56,7 +57,6 @@ if not target_path:
 
 target_path = target_path.replace('\\', '/').replace('//', '/')
 
-
 # 需要重命名的文件后缀
 COMMON_MEDIA_EXTS = [
     'flv',
@@ -92,7 +92,8 @@ COMMON_LANG = [
 ]
 
 # 混合后缀
-COMPOUND_EXTS = COMMON_MEDIA_EXTS + ['.'.join(x) for x in list(product(COMMON_LANG, COMMON_CAPTION_EXTS))] + COMMON_CAPTION_EXTS
+COMPOUND_EXTS = COMMON_MEDIA_EXTS + ['.'.join(x) for x in
+                                     list(product(COMMON_LANG, COMMON_CAPTION_EXTS))] + COMMON_CAPTION_EXTS
 
 
 def get_file_name_ext(file_full_name):
@@ -109,6 +110,7 @@ def get_file_name_ext(file_full_name):
         file_name, ext = file_full_name.rsplit('.', 1)
 
     return file_name, ext
+
 
 # 输出结果列表
 file_lists = []
@@ -271,6 +273,7 @@ def get_season_and_ep(file_path):
         res = list(filter(None, res))
         # 从后向前查找数字, 一般集数在剧集名称后面, 防止剧集有数字导致解析出问题
         res = res[::-1]
+
         # print(res)
 
         def extract_ending_ep(s):
@@ -299,6 +302,7 @@ def get_season_and_ep(file_path):
                 ep = res_sub.group(0)
                 return ep
             return ep
+
         for s in res:
             ep = extract_ending_ep(s)
             if ep:
@@ -330,13 +334,28 @@ def get_season_and_ep(file_path):
     return season, ep
 
 
-def ep_offset_patch(file_path, ep):
-    # 多季集数修正
+def get_season_path(file_path):
+    # 获取season目录
     b = os.path.dirname(file_path.replace('\\', '/'))
-    while(b):
+    season_path = None
+    while (b):
         if not '/' in b:
             break
         b, fo = b.rsplit('/', 1)
+        offset = None
+        if get_season(fo):
+            season_path = b + '/' + fo
+    return season_path
+
+
+def ep_offset_patch(file_path, ep):
+    # 多季集数修正
+    b = os.path.dirname(file_path.replace('\\', '/'))
+    while (b):
+        if not '/' in b:
+            break
+        b, fo = b.rsplit('/', 1)
+        offset = None
         if get_season(fo):
             try:
                 for fn in os.listdir(b + '/' + fo):
@@ -344,21 +363,55 @@ def ep_offset_patch(file_path, ep):
                         continue
                     with open(b + '/' + fo + '/' + fn) as f:
                         offset = int(f.read().strip())
-                        if '.' in ep:
-                            ep_int, ep_tail = ep.split('.')
-                            ep_int = int(ep_int)
-                            if int(ep_int) >= offset:
-                                ep_int = ep_int - offset
-                                ep = str(ep_int) + '.' + ep_tail
-                                break
-                        else:
-                            ep_int = int(ep)
-                            if ep_int >= offset:
-                                ep = str(ep_int - offset)
-                                break
+                        break
             except Exception as e:
                 print('集数修正报错了', e)
                 return ep
+    # 没有找到all.txt 尝试寻找qb-rss-manager的配置文件
+    # 1. config_ern.json 配置
+    # 2. 这两个exe在同一个目录下, 直接读取配置
+    if not offset:
+        qrm_config = None
+        if os.path.exists('config_ern.json'):
+            try:
+                with open('config_ern.json') as f:
+                    qrm_config_file = json.loads(f.read())['qrm_config_file']
+                with open(qrm_config_file, encoding='utf-8') as f:
+                    qrm_config = json.loads(f.read())
+            except Exception as e:
+                print('config_ern.json 读取错误', e)
+        elif os.path.exists('config.json'):
+            try:
+                with open('config.json') as f:
+                    qrm_config = json.loads(f.read())
+            except Exception as e:
+                print(e)
+        if qrm_config:
+            print('qrm_config', qrm_config)
+            print('file_path', file_path)
+            season_path = get_season_path(file_path)
+            print('season_path', season_path)
+            for x in qrm_config['data_list']:
+                if format_path(x[5]) == format_path(season_path):
+                    if x[4]:
+                        try:
+                            offset = int(x[4])
+                            print('QRM获取到offset', offset)
+                        except:
+                            pass
+
+    if offset:
+        if '.' in ep:
+            ep_int, ep_tail = ep.split('.')
+            ep_int = int(ep_int)
+            if int(ep_int) >= offset:
+                ep_int = ep_int - offset
+                ep = str(ep_int) + '.' + ep_tail
+        else:
+            ep_int = int(ep)
+            if ep_int >= offset:
+                ep = str(ep_int - offset)
+
     return zero_fix(ep)
 
 
