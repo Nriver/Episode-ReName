@@ -34,8 +34,22 @@ import json
 #     应该能解析出大部分的命名规则了
 # ''')
 
-scirpt_path = os.path.dirname(os.path.realpath(__file__))
+script_path = os.path.dirname(os.path.realpath(__file__))
 target_path = ''
+
+# pyinstaller打包后, 通过命令行调用, 必须这样才能获取到exe文件路径, 普通的script_path获取的是临时文件路径
+# 拿到这个路径之后才能方便地读取到exe同目录的文件
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(os.path.realpath(sys.executable))
+elif __file__:
+    application_path = os.path.dirname(os.path.realpath(__file__))
+
+def resource_path(relative_path):
+    # 兼容pyinstaller的文件资源访问
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath('.'), relative_path)
+
 
 if len(sys.argv) > 1:
     # 读取命令行目标路径
@@ -372,17 +386,20 @@ def ep_offset_patch(file_path, ep):
     # 2. 这两个exe在同一个目录下, 直接读取配置
     if not offset:
         qrm_config = None
-        if os.path.exists('config_ern.json'):
+        config_ern_path_tmp = os.path.join(application_path, 'config_ern.json')
+        config_path_tmp = os.path.join(application_path, 'config.json')
+        if os.path.exists(config_ern_path_tmp):
             try:
-                with open('config_ern.json', encoding='utf-8') as f:
+                with open(config_ern_path_tmp, encoding='utf-8') as f:
                     qrm_config_file = json.loads(f.read())['qrm_config_file']
                 with open(qrm_config_file, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
             except Exception as e:
                 print('config_ern.json 读取错误', e)
-        elif os.path.exists('config.json'):
+        elif os.path.exists(config_path_tmp):
+
             try:
-                with open('config.json', encoding='utf-8') as f:
+                with open(config_path_tmp, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
             except Exception as e:
                 print(e)
