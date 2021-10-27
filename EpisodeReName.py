@@ -37,6 +37,9 @@ import json
 script_path = os.path.dirname(os.path.realpath(__file__))
 target_path = ''
 
+# 重命名的文件移动到season目录下
+move_up_to_season_folder = True
+
 # pyinstaller打包后, 通过命令行调用, 必须这样才能获取到exe文件路径, 普通的script_path获取的是临时文件路径
 # 拿到这个路径之后才能方便地读取到exe同目录的文件
 if getattr(sys, 'frozen', False):
@@ -485,7 +488,10 @@ if os.path.isdir(target_path):
                 ep = ep_offset_patch(file_path, ep)
                 new_name = 'S' + season + 'E' + ep + '.' + ext
                 print(new_name)
-                new_path = parent_folder_path + '/' + new_name
+                if move_up_to_season_folder:
+                    new_path = get_season_path(file_path) + '\\' + new_name
+                else:
+                    new_path = parent_folder_path + '\\' + new_name
                 file_lists.append([format_path(file_path), format_path(new_path)])
             else:
                 print('未能识别')
@@ -504,7 +510,11 @@ else:
             ep = ep_offset_patch(file_path, ep)
             new_name = 'S' + season + 'E' + ep + '.' + ext
             print(new_name)
-            new_path = parent_folder_path + '\\' + new_name
+            if move_up_to_season_folder:
+                new_path = get_season_path(file_path) + '\\' + new_name
+            else:
+                new_path = parent_folder_path + '\\' + new_name
+
             file_lists.append([file_path, new_path])
         else:
             print('未能识别')
