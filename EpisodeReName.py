@@ -47,6 +47,7 @@ if getattr(sys, 'frozen', False):
 elif __file__:
     application_path = os.path.dirname(os.path.realpath(__file__))
 
+
 def resource_path(relative_path):
     # 兼容pyinstaller的文件资源访问
     if hasattr(sys, '_MEIPASS'):
@@ -293,8 +294,38 @@ def get_season_and_ep(file_path):
 
         # print(res)
 
+        if not ep:
+            # 部分资源命名
+            # 找 第x集
+            pat = '第(\d{1,4}(\.5)?)[集话話]'
+            for y in res:
+                y = y.strip()
+                res_sub = re.search(pat, y)
+                if res_sub:
+                    ep = res_sub.group(1)
+                    break
+        if not ep:
+            # 找 EPXX
+            pat = '[Ee][Pp](\d{1,4}(\.5)?)'
+            for y in res:
+                y = y.strip()
+                res_sub = re.search(pat, y.upper())
+                if res_sub:
+                    ep = res_sub.group(1)
+                    break
+
+        if not ep:
+            # print('找 EXX')
+            pat = '[Ee](\d{1,4}(\.5)?)'
+            for y in res:
+                y = y.strip()
+                res_sub = re.search(pat, y.upper())
+                if res_sub:
+                    ep = res_sub.group(1)
+                    break
+
         def extract_ending_ep(s):
-            # 找到末尾是数字的子字符串
+            print('找末尾是数字的子字符串')
             s = s.strip()
             # print(s)
             ep = None
@@ -320,30 +351,11 @@ def get_season_and_ep(file_path):
                 return ep
             return ep
 
-        for s in res:
-            ep = extract_ending_ep(s)
-            if ep:
-                break
-
-    if not ep:
-        # 部分资源命名
-        # 找 第x集
-        pat = '第(\d{1,4}(\.5)?)[集话話]'
-        for y in res:
-            y = y.strip()
-            res_sub = re.search(pat, y)
-            if res_sub:
-                ep = res_sub.group(1)
-                break
-    if not ep:
-        # 找 EPXX
-        pat = '[Ee][Pp](\d{1,4}(\.5)?)'
-        for y in res:
-            y = y.strip()
-            res_sub = re.search(pat, y.upper())
-            if res_sub:
-                ep = res_sub.group(1)
-                break
+        if not ep:
+            for s in res:
+                ep = extract_ending_ep(s)
+                if ep:
+                    break
 
     season = zero_fix(season)
     ep = zero_fix(ep)
@@ -407,10 +419,10 @@ def ep_offset_patch(file_path, ep):
             except Exception as e:
                 print(e)
         if qrm_config:
-            print('qrm_config', qrm_config)
-            print('file_path', file_path)
+            # print('qrm_config', qrm_config)
+            # print('file_path', file_path)
             season_path = get_season_path(file_path)
-            print('season_path', season_path)
+            # print('season_path', season_path)
             for x in qrm_config['data_list']:
                 if format_path(x[5]) == format_path(season_path):
                     if x[4]:
