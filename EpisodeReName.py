@@ -33,6 +33,7 @@ import json
 
 #     应该能解析出大部分的命名规则了
 # ''')
+from custom_rules import starts_with_rules
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 target_path = ''
@@ -243,6 +244,29 @@ def get_season_and_ep(file_path):
         return None, None
 
     # 根据文件名获取集数
+
+    # 特殊文件名使用配置的匹配规则
+    # 确定是否满足特殊规则
+    use_custom_rule = False
+    for starts_str, rules in starts_with_rules:
+        if file_name.startswith(starts_str):
+            use_custom_rule = True
+            for rule in rules:
+                try:
+                    res = re.findall(rule, file_name)
+                    if res:
+                        print('根据特殊规则找到了集数')
+                        ep = res[0]
+                        season = str(int(season)).zfill(2)
+                        ep = str(int(ep)).zfill(2)
+                        return season, ep
+                except Exception as e:
+                    print(e)
+    # 如果满足特殊规则还没找到ep 直接返回空
+    if use_custom_rule and not ep:
+        return None, None
+
+    # 其它不在特殊规则的继续往下正常查找匹配
 
     # 常见的括号
     bracket_pairs = [
