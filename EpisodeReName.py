@@ -352,6 +352,18 @@ def get_season_and_ep(file_path):
                     ep = res_sub.group(1)
                     break
 
+        # 特殊命名 Sxx.xx 第2季第10集 s02.10
+        if not ep:
+            # logger.info(f"{'找 EXX'}")
+            pat = '[Ss](\d{1,2})\.(\d{1,2})'
+            for y in res:
+                y = y.strip()
+                res_sub = re.search(pat, y.upper())
+                if res_sub:
+                    season = res_sub.group(1)
+                    ep = res_sub.group(2)
+                    break
+
         def extract_ending_ep(s):
             logger.info(f"{'找末尾是数字的子字符串'}")
             s = s.strip()
