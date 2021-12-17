@@ -1,5 +1,4 @@
 # nate's custom ignore
-.idea/
 *.log
 *.tmp
 EpisodeReName.exe

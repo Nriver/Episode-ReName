@@ -1,11 +1,16 @@
+import json
 import os
+import platform
 import re
 import sys
-import platform
-import subprocess
 import time
 from itertools import product
-import json
+
+from loguru import logger
+
+#     应该能解析出大部分的命名规则了
+# ''')
+from custom_rules import starts_with_rules
 
 # print('''
 #     -- 警告 --
@@ -13,27 +18,19 @@ import json
 #
 #     -- 运行环境 --
 #     需要python3环境 不推荐使用群晖的python3.5套件环境,可能出现部分字符不兼容
-
 #     -- 使用方法 --
 #     1.命令行运行
 #     python3 rename.py "/path/to/folder"
 #     2.直接运行
 #     修改 target_path的路径
 #     python3 rename.py
-
 #     -- 程序原理 --
-
 #     优先解析括号
 #     [] 【】()内的1-4位纯数字优先
 #     部分特殊处理
-
 #     括号没有
 #     取剩余部分结尾的数字
 #     部分特殊处理
-
-#     应该能解析出大部分的命名规则了
-# ''')
-from custom_rules import starts_with_rules
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 target_path = ''
@@ -59,20 +56,21 @@ def resource_path(relative_path):
 if len(sys.argv) > 1:
     # 读取命令行目标路径
     target_path = sys.argv[1]
-    print('target_path', target_path)
+    logger.info(f"{'target_path', target_path}")
 
 rename_delay = 0
 if len(sys.argv) > 2:
     # 重命名延迟(秒) 配合qb使用的参数, 默认为0秒
     rename_delay = int(sys.argv[2])
-    print('rename_delay', rename_delay)
+    logger.info(f"{'rename_delay', rename_delay}")
 
 if not target_path:
     # 没有路径参数直接退出
-    sys.exit()
+    # sys.exit()
     # 1 / 0
     # 直接运行的目标路径
     target_path = r'E:\test\极端试验样本'
+    target_path = r'E:\test\极端试验样本\S1'
 
 target_path = target_path.replace('\\', '/').replace('//', '/')
 
@@ -198,7 +196,7 @@ def get_season_cascaded(full_path):
 
 
 def get_season_and_ep(file_path):
-    print('解析文件', file_path)
+    logger.info(f"{'解析文件', file_path}")
     season = None
     ep = None
 
@@ -212,13 +210,13 @@ def get_season_and_ep(file_path):
 
     _ = get_season_cascaded(parent_folder_path)
     if not _:
-        # print('不在season文件夹内 忽略')
+        # logger.info(f"{'不在season文件夹内 忽略'}")
         return None, None
 
     # 忽略已按规则命名的文件
     pat = 'S\d{1,4}E\d{1,4}(\.5)?'
     if re.match(pat, file_name):
-        print('忽略')
+        logger.info(f"{'忽略'}")
         return None, None
 
     # 如果文件已经有 S01EP01 或者 S01E01 直接读取
@@ -255,13 +253,13 @@ def get_season_and_ep(file_path):
                 try:
                     res = re.findall(rule, file_name)
                     if res:
-                        print('根据特殊规则找到了集数')
+                        logger.info(f"{'根据特殊规则找到了集数'}")
                         ep = res[0]
                         season = str(int(season)).zfill(2)
                         ep = str(int(ep)).zfill(2)
                         return season, ep
                 except Exception as e:
-                    print(e)
+                    logger.info(f'{e}')
     # 如果满足特殊规则还没找到ep 直接返回空
     if use_custom_rule and not ep:
         return None, None
@@ -304,7 +302,7 @@ def get_season_and_ep(file_path):
             break
 
     if not ep:
-        print('括号内未识别, 开始寻找括号外内容')
+        logger.info(f"{'括号内未识别, 开始寻找括号外内容'}")
         # 把括号当分隔符排除掉括号内的文字
         pat = ''
         for bracket_pair in bracket_pairs:
@@ -318,7 +316,7 @@ def get_season_and_ep(file_path):
         # 从后向前查找数字, 一般集数在剧集名称后面, 防止剧集有数字导致解析出问题
         res = res[::-1]
 
-        # print(res)
+        # logger.info(f'{res}')
 
         if not ep:
             # 部分资源命名
@@ -341,7 +339,7 @@ def get_season_and_ep(file_path):
                     break
 
         if not ep:
-            # print('找 EXX')
+            # logger.info(f"{'找 EXX'}")
             pat = '[Ee](\d{1,4}(\.5)?)'
             for y in res:
                 y = y.strip()
@@ -351,9 +349,9 @@ def get_season_and_ep(file_path):
                     break
 
         def extract_ending_ep(s):
-            print('找末尾是数字的子字符串')
+            logger.info(f"{'找末尾是数字的子字符串'}")
             s = s.strip()
-            # print(s)
+            # logger.info(f'{s}')
             ep = None
 
             # 兼容v2和.5格式 不兼容 9.33 格式
@@ -365,14 +363,14 @@ def get_season_and_ep(file_path):
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
-                print(res_sub)
+                logger.info(f'{res_sub}')
                 ep = res_sub.group(1)
                 return ep
 
             pat = '\d{1,4}(\.5)?$'
             res_sub = re.search(pat, s)
             if res_sub:
-                print(res_sub)
+                logger.info(f'{res_sub}')
                 ep = res_sub.group(0)
                 return ep
             return ep
@@ -420,7 +418,7 @@ def ep_offset_patch(file_path, ep):
                         offset = int(f.read().strip())
                         break
             except Exception as e:
-                print('集数修正报错了', e)
+                logger.info(f"{'集数修正报错了', e}")
                 return ep
     # 没有找到all.txt 尝试寻找qb-rss-manager的配置文件
     # 1. config_ern.json 配置
@@ -436,25 +434,25 @@ def ep_offset_patch(file_path, ep):
                 with open(qrm_config_file, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
             except Exception as e:
-                print('config_ern.json 读取错误', e)
+                logger.info(f"{'config_ern.json 读取错误', e}")
         elif os.path.exists(config_path_tmp):
 
             try:
                 with open(config_path_tmp, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
             except Exception as e:
-                print(e)
+                logger.info(f'{e}')
         if qrm_config:
-            # print('qrm_config', qrm_config)
-            # print('file_path', file_path)
+            # logger.info(f"{'qrm_config', qrm_config}")
+            # logger.info(f"{'file_path', file_path}")
             season_path = get_season_path(file_path)
-            # print('season_path', season_path)
+            # logger.info(f"{'season_path', season_path}")
             for x in qrm_config['data_list']:
                 if format_path(x[5]) == format_path(season_path):
                     if x[4]:
                         try:
                             offset = int(x[4])
-                            print('QRM获取到offset', offset)
+                            logger.info(f"{'QRM获取到offset', offset}")
                         except:
                             pass
 
@@ -474,7 +472,7 @@ def ep_offset_patch(file_path, ep):
 
 
 if os.path.isdir(target_path):
-    print('文件夹处理')
+    logger.info(f"{'文件夹处理'}")
     # 删除多余文件
     for root, dirs, files in os.walk(target_path, topdown=False):
         for name in files:
@@ -486,7 +484,7 @@ if os.path.isdir(target_path):
 
             _ = get_season_cascaded(parent_folder_path)
             if not _:
-                # print('不在season文件夹内 忽略')
+                # logger.info(f"{'不在season文件夹内 忽略'}")
                 continue
 
             # 忽略部分文件
@@ -502,7 +500,7 @@ if os.path.isdir(target_path):
             if res:
                 continue
             else:
-                print(file_path)
+                logger.info(f'{file_path}')
                 os.remove(file_path)
 
     # 遍历文件夹
@@ -519,25 +517,25 @@ if os.path.isdir(target_path):
             file_path = os.path.abspath(file_path)
             parent_folder_path = os.path.dirname(file_path)
             season, ep = get_season_and_ep(file_path)
-            print(season, ep)
+            logger.info(f'{season, ep}')
             # 重命名
             if season and ep:
                 # 修正集数
                 ep = ep_offset_patch(file_path, ep)
                 new_name = 'S' + season + 'E' + ep + '.' + ext
-                print(new_name)
+                logger.info(f'{new_name}')
                 if move_up_to_season_folder:
                     new_path = get_season_path(file_path) + '\\' + new_name
                 else:
                     new_path = parent_folder_path + '\\' + new_name
                 file_lists.append([format_path(file_path), format_path(new_path)])
             else:
-                print('未能识别')
+                logger.info(f"{'未能识别'}")
                 unknown.append(file_path)
 
 else:
-    print('单文件处理')
-    print(target_path)
+    logger.info(f"{'单文件处理'}")
+    logger.info(f'{target_path}')
     file_path = os.path.abspath(target_path.replace('\\', '/'))
     file_name, ext = get_file_name_ext(target_path)
     parent_folder_path = os.path.dirname(file_path)
@@ -547,7 +545,7 @@ else:
             # 修正集数
             ep = ep_offset_patch(file_path, ep)
             new_name = 'S' + season + 'E' + ep + '.' + ext
-            print(new_name)
+            logger.info(f'{new_name}')
             if move_up_to_season_folder:
                 new_path = get_season_path(file_path) + '\\' + new_name
             else:
@@ -555,21 +553,21 @@ else:
 
             file_lists.append([file_path, new_path])
         else:
-            print('未能识别')
+            logger.info(f"{'未能识别'}")
             unknown.append(file_path)
 
 if unknown:
-    print('----- 未识别文件 -----')
+    logger.info(f"{'----- 未识别文件 -----'}")
     for x in unknown:
-        print(x)
+        logger.info(f'{x}')
 
 if rename_delay:
     # 自动运行改名
-    print('重命名延迟等待中...')
+    logger.info(f"{'重命名延迟等待中...'}")
     # 程序运行太快 会导致重命名失败 估计是文件被锁了 这里故意加个延迟(秒)
     time.sleep(rename_delay)
 
-print('file_lists', file_lists)
+logger.info(f"{'file_lists', file_lists}")
 
 for old, new in file_lists:
     try:
@@ -587,4 +585,4 @@ for old, new in file_lists:
     except:
         pass
 
-print('运行完毕')
+logger.info(f"{'运行完毕'}")
