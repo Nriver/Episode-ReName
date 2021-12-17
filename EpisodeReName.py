@@ -96,6 +96,10 @@ COMMON_CAPTION_EXTS = [
 
 # 语言文件
 COMMON_LANG = [
+    # 特殊命名处理
+    'chs&jpn',
+    'cht&jpn',
+    # 一般命名
     'cn',
     'chs',
     'cht',
