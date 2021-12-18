@@ -66,7 +66,7 @@ if len(sys.argv) > 2:
 
 if not target_path:
     # 没有路径参数直接退出
-    # sys.exit()
+    sys.exit()
     # 1 / 0
     # 直接运行的目标路径
     target_path = r'E:\test\极端试验样本'
@@ -342,14 +342,16 @@ def get_season_and_ep(file_path):
                     ep = res_sub.group(1)
                     break
 
+        # 特殊命名 SExx.xx 第2季第10集 SE02.10
         if not ep:
             # logger.info(f"{'找 EXX'}")
-            pat = '[Ee](\d{1,4}(\.5)?)'
+            pat = '[Ss][Ee](\d{1,2})\.(\d{1,2})'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y.upper())
                 if res_sub:
-                    ep = res_sub.group(1)
+                    season = res_sub.group(1)
+                    ep = res_sub.group(2)
                     break
 
         # 特殊命名 Sxx.xx 第2季第10集 s02.10
@@ -362,6 +364,17 @@ def get_season_and_ep(file_path):
                 if res_sub:
                     season = res_sub.group(1)
                     ep = res_sub.group(2)
+                    break
+
+        # 匹配顺序调整
+        if not ep:
+            # logger.info(f"{'找 EXX'}")
+            pat = '[Ee](\d{1,4}(\.5)?)'
+            for y in res:
+                y = y.strip()
+                res_sub = re.search(pat, y.upper())
+                if res_sub:
+                    ep = res_sub.group(1)
                     break
 
         def extract_ending_ep(s):
