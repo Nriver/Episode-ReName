@@ -37,12 +37,12 @@
 D:\Test\EpisodeReName.exe "%D" 15
 ```
 参数说明：
-- EpisodeReName工具所在路径 
+- EpisodeReName工具所在路径
 - "%D"是文件下载路径, 这个一般不要修改
 - 最后的数字是执行延时, 单位是秒, 因为qb下载完成会锁住文件, 需要等一段时间来让它释放, 时间长短可自行调整
 
 
-# 使用场景3 - 命令行运行
+# 使用场景3 - windows命令行运行
 
 可以直接传入文件路径, 注意有空格的路径加双引号
 ```
@@ -52,6 +52,25 @@ D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1"
 可以传入第二个参数, 作为重命名的延迟. 这个参数主要是配合qbitorrent使用, 避免qb锁定文件导致重命名失败. 一般停止做种15秒后在操作能确保文件被释放.
 ```
 D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1" 15
+```
+
+# 使用场景4 - Linux终端运行
+本程序支持在linux中运行, 需要python3运行环境
+
+先将整个项目clone下来
+```
+git clone https://github.com/Nriver/Episode-ReName
+```
+
+使用
+```
+python3 -m pip install -r requirements.txt --user
+```
+命令来安装相关模块
+
+使用以下命令调用程序进行重命名操作
+```
+python3 EpisodeReName.py "/home/user/我的番剧/XXX/Season 1"
 ```
 
 # 脚本编译成可执行程序
