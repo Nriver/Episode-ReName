@@ -108,4 +108,15 @@ make_exe.bat
 
 这时候可以在鬼灭之刃的`Season 2`文件夹中添加一个`all.txt`文件, 里面写上一个数字, 会在自动重命名的时候减掉这个数字. 比如上面的例子就需要在`all.txt`填入26, 自动重命名就会把S02E28改成S02E02, 这样就能正常削刮了.
 
+---
+# Stargazers 数据
+
+统计图使用 [caarlos0/starcharts](https://github.com/caarlos0/starcharts) 项目生成.
+
+[![Stargazers over time](https://starchart.cc/Nriver/trilium-translation.svg)](https://starchart.cc/Nriver/trilium-translation)
+
+# 感谢
+感谢某位不愿意透露姓名的朋友
+
+
 
