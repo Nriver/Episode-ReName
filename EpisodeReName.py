@@ -433,7 +433,10 @@ def get_season_path(file_path):
 def ep_offset_patch(file_path, ep):
     # 多季集数修正
     b = os.path.dirname(file_path.replace('\\', '/'))
+    offset = None
     while (b):
+        if offset:
+            break
         if not '/' in b:
             break
         b, fo = b.rsplit('/', 1)
