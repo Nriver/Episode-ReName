@@ -10,7 +10,7 @@
 
 注意3: 请不将本程序放在含有空格的路径中, 路径可以有中文但是不能有空格, 切记！
 
-<a href="https://count.getloli.com"><img align="center" src="https://count.getloli.com/get/@Nriver"></a><br>
+<a href="https://count.getloli.com"><img align="center" src="https://count.getloli.com/get/@Nriver_Episode-ReName"></a><br>
 
 # 使用场景1 - 右键菜单调用
 
