@@ -1,5 +1,7 @@
 # Episode-ReName
 
+[懒人包下载](https://github.com/Nriver/qb-rss-manager/tree/main/aio)
+
 电视剧/番剧自动化重命名工具. 本工具可以对大部分资源进行重命名处理. 主要是给资源重命名后给Emby, Jellyfin, Tiny Media Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自动重命名, 具体使用方法请看下面的说明.
 
 注意0: 本工具是**命令行**工具, 没有界面, 没有界面, 没有界面, 不要问我为什么双击exe没有反应!
