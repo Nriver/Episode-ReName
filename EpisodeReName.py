@@ -107,6 +107,7 @@ COMMON_LANG = [
     'sc',
     'tc',
     'jp',
+    'jap',
     'jpn',
     'en',
     'eng',
@@ -115,6 +116,24 @@ COMMON_LANG = [
 # 混合后缀
 COMPOUND_EXTS = COMMON_MEDIA_EXTS + ['.'.join(x) for x in
                                      list(product(COMMON_LANG, COMMON_CAPTION_EXTS))] + COMMON_CAPTION_EXTS
+
+
+def fix_ext(ext):
+    # 文件扩展名修正
+    # 1.统一小写
+    # 2.字幕文件 把sc替换成chs, tc替换成cht, jap替换成jpn
+    new_ext = ext.lower()
+
+    # 双重生成器
+    ori_list = [f'{y}.{x}' for x in COMMON_CAPTION_EXTS for y in ['sc', 'tc', 'jap']]
+    new_list = [f'{y}.{x}' for x in COMMON_CAPTION_EXTS for y in ['chs', 'cht', 'jpn']]
+
+    for i, x in enumerate(ori_list):
+        if new_ext == x:
+            new_ext = new_list[i]
+            break
+
+    return new_ext
 
 
 def get_file_name_ext(file_full_name):
@@ -554,7 +573,7 @@ if os.path.isdir(target_path):
             if season and ep:
                 # 修正集数
                 ep = ep_offset_patch(file_path, ep)
-                new_name = 'S' + season + 'E' + ep + '.' + ext
+                new_name = 'S' + season + 'E' + ep + '.' + fix_ext(ext)
                 logger.info(f'{new_name}')
                 if move_up_to_season_folder:
                     new_path = get_season_path(file_path) + '/' + new_name
@@ -576,7 +595,7 @@ else:
         if season and ep:
             # 修正集数
             ep = ep_offset_patch(file_path, ep)
-            new_name = 'S' + season + 'E' + ep + '.' + ext
+            new_name = 'S' + season + 'E' + ep + '.' + fix_ext(ext)
             logger.info(f'{new_name}')
             if move_up_to_season_folder:
                 new_path = get_season_path(file_path) + '\\' + new_name
