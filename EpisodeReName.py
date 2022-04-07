@@ -1,9 +1,11 @@
+import argparse
 import json
 import os
 import platform
 import re
 import sys
 import time
+from datetime import datetime
 from itertools import product
 
 from loguru import logger
@@ -53,16 +55,42 @@ def resource_path(relative_path):
     return os.path.join(os.path.abspath('.'), relative_path)
 
 
-if len(sys.argv) > 1:
+# if len(sys.argv) < 2:
+#     exit()
+
+# 默认配置
+rename_delay = 0
+rename_overwrite = True
+
+# logger.info(sys.argv)
+# print(sys.argv)
+
+if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
+    # 旧版的命令解析
+    # 简单通过判断是否有 - 来区分新旧参数
+    # python EpisodeReName.py E:\test\极端试验样本\S1
+
     # 读取命令行目标路径
     target_path = sys.argv[1]
     logger.info(f"{'target_path', target_path}")
+    if len(sys.argv) > 2:
+        # 重命名延迟(秒) 配合qb使用的参数, 默认为0秒
+        rename_delay = int(sys.argv[2])
+        logger.info(f"{'rename_delay', rename_delay}")
+else:
+    # 新的argparse解析
+    # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
+    # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 0
+    # EpisodeReName.exe --path E:\test\极端试验样本\S1 --delay 1 --overwrite 0
 
-rename_delay = 0
-if len(sys.argv) > 2:
-    # 重命名延迟(秒) 配合qb使用的参数, 默认为0秒
-    rename_delay = int(sys.argv[2])
-    logger.info(f"{'rename_delay', rename_delay}")
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--path', required=True, help='目标路径')
+    ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0)
+    ap.add_argument('--overwrite', required=False, help='强制重命名, 默认为1开启覆盖模式', type=int, default=1)
+    args = vars(ap.parse_args())
+    target_path = args['path']
+    rename_delay = args['delay']
+    rename_overwrite = args['overwrite']
 
 if not target_path:
     # 没有路径参数直接退出
@@ -620,7 +648,19 @@ if rename_delay:
 
 logger.info(f"{'file_lists', file_lists}")
 
+# 错误记录
+error_logs = []
+
 for old, new in file_lists:
+
+    if not rename_overwrite:
+        # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
+        if os.path.exists(new):
+            error_logs.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在')
+
+        continue
+
+    # 默认遇到文件存在则强制删除已存在文件
     try:
         # 检测文件能否重命名 报错直接忽略
         tmp_name = new + '.new'
@@ -632,8 +672,17 @@ for old, new in file_lists:
 
         # 临时文件重命名
         os.rename(tmp_name, new)
-
     except:
         pass
+
+if error_logs:
+    error_file = os.path.join(application_path, 'error.txt')
+    logger.warning(f'部分文件重命名失败, 请检查{error_file}')
+    if not os.path.exists(error_file):
+        f = open(error_file, 'w', encoding='utf-8')
+        f.write('\n'.join(error_logs))
+    else:
+        f = open(error_file, 'a', encoding='utf-8')
+        f.write('\n' + '\n'.join(error_logs))
 
 logger.info(f"{'运行完毕'}")
