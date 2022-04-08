@@ -657,8 +657,7 @@ for old, new in file_lists:
         # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
         if os.path.exists(new):
             error_logs.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在')
-
-        continue
+            continue
 
     # 默认遇到文件存在则强制删除已存在文件
     try:
