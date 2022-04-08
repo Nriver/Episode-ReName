@@ -18,21 +18,21 @@
 
 # 目录
 <!--ts-->
-* [Episode-ReName](/home/nate/gitRepo/Episode-ReName/README.md#episode-rename)
-* [目录](/home/nate/gitRepo/Episode-ReName/README.md#目录)
-* [使用场景1 - 右键菜单调用](/home/nate/gitRepo/Episode-ReName/README.md#使用场景1---右键菜单调用)
-* [使用场景2 - qbitorrent下载后自动重命名](/home/nate/gitRepo/Episode-ReName/README.md#使用场景2---qbitorrent下载后自动重命名)
-* [使用场景3 - windows命令行运行](/home/nate/gitRepo/Episode-ReName/README.md#使用场景3---windows命令行运行)
-   * [简易参数模式](/home/nate/gitRepo/Episode-ReName/README.md#简易参数模式)
-   * [复杂参数模式](/home/nate/gitRepo/Episode-ReName/README.md#复杂参数模式)
-* [使用场景4 - Linux终端运行](/home/nate/gitRepo/Episode-ReName/README.md#使用场景4---linux终端运行)
-* [脚本编译成可执行程序](/home/nate/gitRepo/Episode-ReName/README.md#脚本编译成可执行程序)
-* [强制的规范元数据结构](/home/nate/gitRepo/Episode-ReName/README.md#强制的规范元数据结构)
-* [工具主要功能和处理逻辑](/home/nate/gitRepo/Episode-ReName/README.md#工具主要功能和处理逻辑)
-* [主要文件说明](/home/nate/gitRepo/Episode-ReName/README.md#主要文件说明)
-* [多季番剧tmdb集数适配](/home/nate/gitRepo/Episode-ReName/README.md#多季番剧tmdb集数适配)
-* [Stargazers 数据](/home/nate/gitRepo/Episode-ReName/README.md#stargazers-数据)
-* [感谢](/home/nate/gitRepo/Episode-ReName/README.md#感谢)
+* [Episode-ReName](#episode-rename)
+* [目录](#目录)
+* [使用场景1 - 右键菜单调用](#使用场景1---右键菜单调用)
+* [使用场景2 - qbitorrent下载后自动重命名](#使用场景2---qbitorrent下载后自动重命名)
+* [使用场景3 - windows命令行运行](#使用场景3---windows命令行运行)
+   * [简易参数模式](#简易参数模式)
+   * [复杂参数模式](#复杂参数模式)
+* [使用场景4 - Linux终端运行](#使用场景4---linux终端运行)
+* [脚本编译成可执行程序](#脚本编译成可执行程序)
+* [强制的规范元数据结构](#强制的规范元数据结构)
+* [工具主要功能和处理逻辑](#工具主要功能和处理逻辑)
+* [主要文件说明](#主要文件说明)
+* [多季番剧tmdb集数适配](#多季番剧tmdb集数适配)
+* [Stargazers 数据](#stargazers-数据)
+* [感谢](#感谢)
 <!--te-->
 
 # 使用场景1 - 右键菜单调用
