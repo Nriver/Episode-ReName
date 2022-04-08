@@ -94,7 +94,7 @@ D:\Test\EpisodeReName.exe -h
   --path PATH           目标路径
   --delay DELAY         重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待
   --overwrite OVERWRITE
-                        强制重命名, 默认为1开启覆盖模式
+                        强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt
 ```
 
 # 使用场景4 - Linux终端运行

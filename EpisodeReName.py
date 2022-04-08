@@ -62,6 +62,7 @@ def resource_path(relative_path):
 rename_delay = 0
 rename_overwrite = True
 
+# logger.add(os.path.join(application_path, 'app.log'))
 # logger.info(sys.argv)
 # print(sys.argv)
 
@@ -86,7 +87,8 @@ else:
     ap = argparse.ArgumentParser()
     ap.add_argument('--path', required=True, help='目标路径')
     ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0)
-    ap.add_argument('--overwrite', required=False, help='强制重命名, 默认为1开启覆盖模式', type=int, default=1)
+    ap.add_argument('--overwrite', required=False, help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt', type=int,
+                    default=1)
     args = vars(ap.parse_args())
     target_path = args['path']
     rename_delay = args['delay']
