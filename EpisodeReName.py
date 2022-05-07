@@ -628,9 +628,9 @@ else:
             new_name = 'S' + season + 'E' + ep + '.' + fix_ext(ext)
             logger.info(f'{new_name}')
             if move_up_to_season_folder:
-                new_path = get_season_path(file_path) + '\\' + new_name
+                new_path = format_path(get_season_path(file_path) + '\\' + new_name)
             else:
-                new_path = parent_folder_path + '\\' + new_name
+                new_path = format_path(parent_folder_path + '\\' + new_name)
 
             file_lists.append([file_path, new_path])
         else:
