@@ -79,7 +79,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
         rename_delay = int(sys.argv[2])
         logger.info(f"{'rename_delay', rename_delay}")
     name_format = 'S{season}E{ep}'
-
+    force_rename = 0
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -94,11 +94,14 @@ else:
     ap.add_argument('--name_format', required=False,
                     help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
                     default='S{season}E{ep}')
+    ap.add_argument('--force_rename', required=False, help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
+                    default=0)
     args = vars(ap.parse_args())
     target_path = args['path']
     rename_delay = args['delay']
     rename_overwrite = args['overwrite']
     name_format = args['name_format']
+    force_rename = args['force_rename']
 
 if not target_path:
     # 没有路径参数直接退出
@@ -254,6 +257,16 @@ def get_season_cascaded(full_path):
     return season
 
 
+def get_series_from_season_path(season_path):
+    """修正系列名称获取 去掉结尾的年份"""
+    series = os.path.basename(os.path.dirname(season_path))
+    pat = '\(\d{4}\)$'
+    res = re.search(pat, series)
+    if res:
+        series = series[:-6].strip()
+    return series
+
+
 def get_season_and_ep(file_path):
     logger.info(f"{'解析文件', file_path}")
     season = None
@@ -273,10 +286,17 @@ def get_season_and_ep(file_path):
         return None, None
 
     # 忽略已按规则命名的文件
-    pat = 'S\d{1,4}E\d{1,4}(\.5)?'
-    if re.match(pat, file_name):
+    pat = 'S(\d{1,4})E(\d{1,4}(\.5)?)'
+    res = re.match(pat, file_name)
+    if res:
         logger.info(f"{'忽略'}")
-        return None, None
+        if force_rename:
+            season, ep = res[1], res[2]
+            season = str(int(season)).zfill(2)
+            ep = str(int(ep)).zfill(2)
+            return season, ep
+        else:
+            return None, None
 
     # 如果文件已经有 S01EP01 或者 S01E01 直接读取
     pat = '[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
@@ -611,7 +631,7 @@ if os.path.isdir(target_path):
                 ep = ep_offset_patch(file_path, ep)
                 season_path = get_season_path(file_path)
                 # 系列名称
-                series = os.path.basename(os.path.dirname(season_path))
+                series = get_series_from_season_path(season_path)
                 # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
                 new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
                 logger.info(f'{new_name}')
@@ -637,7 +657,7 @@ else:
             ep = ep_offset_patch(file_path, ep)
             season_path = get_season_path(file_path)
             # 系列名称
-            series = os.path.basename(os.path.dirname(season_path))
+            series = get_series_from_season_path(season_path)
             # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
             new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
             logger.info(f'{new_name}')

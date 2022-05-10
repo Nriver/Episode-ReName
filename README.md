@@ -119,6 +119,8 @@ D:\Test\EpisodeReName.exe -h
                         强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt
   --name_format NAME_FORMAT
                         (慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 series系列名称 如 "{series} - S{season}E{ep}"
+  --force_rename FORCE_RENAME
+                        (慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启
 ```
 
 # 使用场景4 - Linux终端运行
