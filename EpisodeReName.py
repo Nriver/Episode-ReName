@@ -78,6 +78,8 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
         # 重命名延迟(秒) 配合qb使用的参数, 默认为0秒
         rename_delay = int(sys.argv[2])
         logger.info(f"{'rename_delay', rename_delay}")
+    name_format = 'S{season}E{ep}'
+
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -89,10 +91,14 @@ else:
     ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0)
     ap.add_argument('--overwrite', required=False, help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt', type=int,
                     default=1)
+    ap.add_argument('--name_format', required=False,
+                    help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
+                    default='S{season}E{ep}')
     args = vars(ap.parse_args())
     target_path = args['path']
     rename_delay = args['delay']
     rename_overwrite = args['overwrite']
+    name_format = args['name_format']
 
 if not target_path:
     # 没有路径参数直接退出
@@ -603,10 +609,14 @@ if os.path.isdir(target_path):
             if season and ep:
                 # 修正集数
                 ep = ep_offset_patch(file_path, ep)
-                new_name = 'S' + season + 'E' + ep + '.' + fix_ext(ext)
+                season_path = get_season_path(file_path)
+                # 系列名称
+                series = os.path.basename(os.path.dirname(season_path))
+                # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
+                new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
                 logger.info(f'{new_name}')
                 if move_up_to_season_folder:
-                    new_path = get_season_path(file_path) + '/' + new_name
+                    new_path = season_path + '/' + new_name
                 else:
                     new_path = parent_folder_path + '/' + new_name
                 file_lists.append([format_path(file_path), format_path(new_path)])
@@ -625,12 +635,16 @@ else:
         if season and ep:
             # 修正集数
             ep = ep_offset_patch(file_path, ep)
-            new_name = 'S' + season + 'E' + ep + '.' + fix_ext(ext)
+            season_path = get_season_path(file_path)
+            # 系列名称
+            series = os.path.basename(os.path.dirname(season_path))
+            # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
+            new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
             logger.info(f'{new_name}')
             if move_up_to_season_folder:
-                new_path = format_path(get_season_path(file_path) + '\\' + new_name)
+                new_path = format_path(season_path + '/' + new_name)
             else:
-                new_path = format_path(parent_folder_path + '\\' + new_name)
+                new_path = format_path(parent_folder_path + '/' + new_name)
 
             file_lists.append([file_path, new_path])
         else:

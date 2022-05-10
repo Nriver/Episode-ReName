@@ -17,14 +17,16 @@
 <a href="https://count.getloli.com"><img align="center" src="https://count.getloli.com/get/@Nriver_Episode-ReName"></a><br>
 
 # 目录
+
 <!--ts-->
+
 * [Episode-ReName](#episode-rename)
 * [目录](#目录)
 * [使用场景1 - 右键菜单调用](#使用场景1---右键菜单调用)
 * [使用场景2 - qbitorrent下载后自动重命名](#使用场景2---qbitorrent下载后自动重命名)
 * [使用场景3 - windows命令行运行](#使用场景3---windows命令行运行)
-   * [简易参数模式](#简易参数模式)
-   * [复杂参数模式](#复杂参数模式)
+    * [简易参数模式](#简易参数模式)
+    * [复杂参数模式](#复杂参数模式)
 * [使用场景4 - Linux终端运行](#使用场景4---linux终端运行)
 * [脚本编译成可执行程序](#脚本编译成可执行程序)
 * [强制的规范元数据结构](#强制的规范元数据结构)
@@ -33,6 +35,7 @@
 * [多季番剧tmdb集数适配](#多季番剧tmdb集数适配)
 * [Stargazers 数据](#stargazers-数据)
 * [感谢](#感谢)
+
 <!--te-->
 
 # 使用场景1 - 右键菜单调用
@@ -114,6 +117,8 @@ D:\Test\EpisodeReName.exe -h
   --delay DELAY         重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待
   --overwrite OVERWRITE
                         强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt
+  --name_format NAME_FORMAT
+                        (慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 series系列名称 如 "{series} - S{season}E{ep}"
 ```
 
 # 使用场景4 - Linux终端运行
