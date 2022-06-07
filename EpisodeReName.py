@@ -96,12 +96,17 @@ else:
                     default='S{season}E{ep}')
     ap.add_argument('--force_rename', required=False, help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
                     default=0)
+    ap.add_argument('--replace', type=str, nargs='+', action='append',
+                    help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
+                    default=[])
+
     args = vars(ap.parse_args())
     target_path = args['path']
     rename_delay = args['delay']
     rename_overwrite = args['overwrite']
     name_format = args['name_format']
     force_rename = args['force_rename']
+    custom_replace_pair = args['replace']
 
 if not target_path:
     # 没有路径参数直接退出
@@ -645,6 +650,12 @@ if os.path.isdir(target_path):
                 series = get_series_from_season_path(season_path)
                 # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
                 new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
+
+                if custom_replace_pair:
+                    # 自定义替换关键字
+                    for replace_old_part, replace_new_part in custom_replace_pair:
+                        new_name = new_name.replace(replace_old_part, replace_new_part)
+
                 logger.info(f'{new_name}')
                 if move_up_to_season_folder:
                     new_path = season_path + '/' + new_name
@@ -671,6 +682,12 @@ else:
             series = get_series_from_season_path(season_path)
             # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
             new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
+
+            if custom_replace_pair:
+                # 自定义替换关键字
+                for replace_old_part, replace_new_part in custom_replace_pair:
+                    new_name = new_name.replace(replace_old_part, replace_new_part)
+
             logger.info(f'{new_name}')
             if move_up_to_season_folder:
                 new_path = format_path(season_path + '/' + new_name)
