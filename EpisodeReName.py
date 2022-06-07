@@ -367,6 +367,8 @@ def get_season_and_ep(file_path):
         '[Ss][Pp](\d{1,4}(\.5)?)',
         # 兼容v2命名
         '(\d{1,4}(\.5)?)[Vv]?\d?',
+        # 兼容END命名
+        '(\d{1,4}(\.5)?)\s?(?i:END)?',
     ]
     # 括号和内容组合起来
     pats = []
@@ -464,6 +466,15 @@ def get_season_and_ep(file_path):
             # 10v2
             # 10.5v2
             pat = '(\d{1,4}(\.5)?)[Vv]?\d?'
+            ep = None
+            res_sub = re.search(pat, s)
+            if res_sub:
+                logger.info(f'{res_sub}')
+                ep = res_sub.group(1)
+                return ep
+
+            # 兼容END命名
+            pat = '(\d{1,4}(\.5)?)\s?(?i:END)?'
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
