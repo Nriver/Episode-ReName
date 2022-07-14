@@ -80,6 +80,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
         logger.info(f"{'rename_delay', rename_delay}")
     name_format = 'S{season}E{ep}'
     force_rename = 0
+    custom_replace_pair = ""
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -96,7 +97,7 @@ else:
                     default='S{season}E{ep}')
     ap.add_argument('--force_rename', required=False, help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
                     default=0)
-    ap.add_argument('--replace', type=str, nargs='+', action='append',
+    ap.add_argument('--replace', required=False, type=str, nargs='+', action='append',
                     help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
                     default=[])
 
