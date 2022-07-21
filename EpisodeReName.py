@@ -523,22 +523,23 @@ def get_season_path(file_path):
 
 def ep_offset_patch(file_path, ep):
     # 多季集数修正
+    # 20220721 修改集数修正修正规则：可以用 + - 符号标记修正数值, 表达更直观
     b = os.path.dirname(file_path.replace('\\', '/'))
-    offset = None
+    offset_str = None
     while (b):
-        if offset:
+        if offset_str:
             break
         if not '/' in b:
             break
         b, fo = b.rsplit('/', 1)
-        offset = None
+        offset_str = None
         if get_season(fo):
             try:
                 for fn in os.listdir(b + '/' + fo):
                     if fn.lower() != 'all.txt':
                         continue
                     with open(b + '/' + fo + '/' + fn, encoding='utf-8') as f:
-                        offset = int(f.read().strip())
+                        offset_str = f.read()
                         break
             except Exception as e:
                 logger.info(f"{'集数修正报错了', e}")
@@ -546,7 +547,7 @@ def ep_offset_patch(file_path, ep):
     # 没有找到all.txt 尝试寻找qb-rss-manager的配置文件
     # 1. config_ern.json 配置
     # 2. 这两个exe在同一个目录下, 直接读取配置
-    if not offset:
+    if not offset_str:
         qrm_config = None
         config_ern_path_tmp = os.path.join(application_path, 'config_ern.json')
         config_path_tmp = os.path.join(application_path, 'config.json')
@@ -574,22 +575,33 @@ def ep_offset_patch(file_path, ep):
                 if format_path(x[5]) == format_path(season_path):
                     if x[4]:
                         try:
-                            offset = int(x[4])
-                            logger.info(f"{'QRM获取到offset', offset}")
+                            offset_str = x[4]
+                            logger.info(f"{'QRM获取到 offset_str', offset_str}")
                         except:
                             pass
+    # 集数修正
+    if offset_str:
+        try:
+            offset_str = offset_str.strip().replace(' ', '')
+            if offset_str[0] in ['+', '-']:
+                # 如果有 + - 号做标记 说明要减去负数
+                offset = - int(offset_str)
+            else:
+                # 没有标记 直接减掉这个数
+                offset = int(offset_str)
 
-    if offset:
-        if '.' in ep:
-            ep_int, ep_tail = ep.split('.')
-            ep_int = int(ep_int)
-            if int(ep_int) >= offset:
-                ep_int = ep_int - offset
-                ep = str(ep_int) + '.' + ep_tail
-        else:
-            ep_int = int(ep)
-            if ep_int >= offset:
-                ep = str(ep_int - offset)
+            if '.' in ep:
+                ep_int, ep_tail = ep.split('.')
+                ep_int = int(ep_int)
+                if int(ep_int) >= offset:
+                    ep_int = ep_int - offset
+                    ep = str(ep_int) + '.' + ep_tail
+            else:
+                ep_int = int(ep)
+                if ep_int >= offset:
+                    ep = str(ep_int - offset)
+        except:
+            return ep
 
     return zero_fix(ep)
 
