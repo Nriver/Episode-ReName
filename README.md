@@ -82,7 +82,7 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 
 具体参数请看下面的`复杂参数模式`章节
 
-# 使用场景3 - 群晖套件qbittorrent下载后自动重命名
+# 使用场景3 - 群晖套件版qbittorrent下载后自动重命名
 
 1. 群晖需要安装qbittorrent套件和python3套件
 2. 群晖的qb使用的是admin账户, 请将`EpisodeReName.py`和`custom_rules.py`放到群晖File Station的`homes/admin`
@@ -96,7 +96,37 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
 
-# 使用场景4 - windows命令行运行
+# 使用场景4 - docker版qbittorrent下载后自动重命名
+
+测试了以下三个镜像 `linuxserver/qbittorrent`, `superng6/qbittorrentee`, `johngong/qbittorrent`, 其它镜像操作也是类似的
+
+1. 下载 `EpisodeReName.py`和`custom_rules.py` 到docker的宿主机上
+2. 复制到docker容器里
+
+linuxserver和johngong用这个命令复制
+
+```
+docker cp EpisodeReName.py qbittorrent:/
+docker cp custom_rules.py qbittorrent:/
+```
+
+superng6的容器名字要改成qbittorrentee
+
+```
+docker cp EpisodeReName.py qbittorrentee:/
+docker cp custom_rules.py qbittorrentee:/
+```
+
+3. 设置下载后自动运行改名，修改qb配置: `下载` 勾选 `Torrent 完成时运行外部程序`,
+   下面填上
+
+```
+python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1
+```
+
+4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
+
+# 使用场景5 - windows命令行运行
 
 ## 简易参数模式
 
@@ -140,7 +170,7 @@ D:\Test\EpisodeReName.exe -h
                         (慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启
 ```
 
-# 使用场景4 - Linux终端运行
+# 使用场景6 - Linux终端运行
 
 本程序支持在linux中运行, 需要python3运行环境
 
