@@ -8,7 +8,16 @@ import time
 from datetime import datetime
 from itertools import product
 
-from loguru import logger
+try:
+    from loguru import logger
+except:
+    # 兼容无loguru模块的环境，例如docker和群晖
+    class logger:
+        def info(s):
+            print(f'| INFO     | {s}')
+
+        def warning(s):
+            print(f'| WARNING  | {s}')
 
 #     应该能解析出大部分的命名规则了
 # ''')
@@ -89,13 +98,17 @@ else:
 
     ap = argparse.ArgumentParser()
     ap.add_argument('--path', required=True, help='目标路径')
-    ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0)
-    ap.add_argument('--overwrite', required=False, help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt', type=int,
+    ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int,
+                    default=0)
+    ap.add_argument('--overwrite', required=False,
+                    help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt',
+                    type=int,
                     default=1)
     ap.add_argument('--name_format', required=False,
                     help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
                     default='S{season}E{ep}')
-    ap.add_argument('--force_rename', required=False, help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
+    ap.add_argument('--force_rename', required=False,
+                    help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
                     default=0)
     ap.add_argument('--replace', required=False, type=str, nargs='+', action='append',
                     help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
@@ -733,7 +746,8 @@ for old, new in file_lists:
     if not rename_overwrite:
         # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
         if os.path.exists(new):
-            error_logs.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在')
+            error_logs.append(
+                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在')
             continue
 
     # 默认遇到文件存在则强制删除已存在文件
