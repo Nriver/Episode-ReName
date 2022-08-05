@@ -101,7 +101,7 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 测试了以下三个镜像 `linuxserver/qbittorrent`, `superng6/qbittorrentee`, `johngong/qbittorrent`, 其它镜像操作也是类似的
 
 1. 下载 `EpisodeReName.py`和`custom_rules.py` 到docker的宿主机上
-2. 复制到docker容器里
+2. 复制到docker容器里，这里以从宿主机复制到docker容器根目录 `/` 为例
 
 linuxserver和johngong用这个命令复制
 
@@ -125,6 +125,8 @@ python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1
 ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
+
+注: 以上方法写入的文件在更新镜像后可能会被删除，你可以把py文件放到你自己映射的下载目录里，改好对应的路径就行
 
 # 使用场景5 - windows命令行运行
 
