@@ -37,6 +37,7 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 * [主要文件说明](#主要文件说明)
 * [多季番剧tmdb集数适配](#多季番剧tmdb集数适配)
 * [Stargazers 数据](#stargazers-数据)
+* [捐赠](#捐赠)
 * [感谢](#感谢)
 
 <!--te-->
@@ -48,17 +49,17 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 1. 从[Release](https://github.com/Nriver/Episode-ReName/releases)直接下载最新的exe程序
 2. 修改 右键菜单 添加.reg 的exe路径并导入注册表
 
-![添加注册表](./doc/添加注册表.gif)
+![添加注册表](docs/添加注册表.gif)
 
 3. 找到要重命名的文件/文件夹, 右键点击"自动剧集命名".
 
-![右键重命名](./doc/右键重命名.gif)
+![右键重命名](docs/右键重命名.gif)
 
 注：可以多选进行批量操作. win10多选超过15个, 右键菜单会消失, 可以运行`win10 右键多文件限制修改.reg`将限制修改成999个.
 
 # 使用场景2 - windows的qbitorrent下载后自动重命名
 
-![qb下载自动重命名](./doc/qb下载自动重命名.gif)
+![qb下载自动重命名](docs/qb下载自动重命名.gif)
 
 可以在qbittorrent 中进行设置, 实现下载完成后自动重命名
 
@@ -261,11 +262,26 @@ pyinstaller -F -w EpisodeReName.py
 
 统计图使用 [caarlos0/starcharts](https://github.com/caarlos0/starcharts) 项目生成.
 
-[![Stargazers over time](https://starchart.cc/Nriver/trilium-translation.svg)](https://starchart.cc/Nriver/trilium-translation)
+[![Stargazers over time](https://starchart.cc/Nriver/Episode-ReName.svg)](https://starchart.cc/Nriver/Episode-ReName)
+
+---
+
+# 捐赠
+
+如果你觉得我做的程序对你有帮助, 欢迎捐赠, 这对我来说是莫大的鼓励!
+
+支付宝:  
+![Alipay](docs/alipay.png)
+
+微信:  
+![Wechat Pay](docs/wechat_pay.png)
+
+---
 
 # 感谢
 
-感谢某位不愿意透露姓名的朋友
+感谢某位不愿意透露姓名的朋友, 没有他的帮助, 就没有这个工具的诞生.
 
+感谢Jetbrins公司提供的Pycharm编辑器!
 
-
+[![Jetbrains](docs/jetbrains.svg)](https://jb.gg/OpenSource)
