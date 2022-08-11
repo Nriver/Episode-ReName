@@ -282,6 +282,12 @@ pyinstaller -F -w EpisodeReName.py
 
 感谢某位不愿意透露姓名的朋友, 没有他的帮助, 就没有这个工具的诞生.
 
+感谢 `J*s` 赞助的50元!
+
+感谢 `**莲` 赞助的10元!
+
+感谢 `**楷` 赞助的5元!
+
 感谢Jetbrins公司提供的Pycharm编辑器!
 
 [![Jetbrains](docs/jetbrains.svg)](https://jb.gg/OpenSource)
