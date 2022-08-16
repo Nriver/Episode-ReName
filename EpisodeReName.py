@@ -4,6 +4,8 @@ import os
 import platform
 import re
 import sys
+import time
+from datetime import datetime
 from itertools import product
 
 try:
@@ -574,67 +576,62 @@ def ep_offset_patch(file_path, ep):
         elif os.path.exists(config_path_tmp):
 
             try:
-
-
-b - rss - manager
-的
-v1
-格式
-with open(config_path_tmp, encoding='utf-8') as f:
-    qrm_config = json.loads(f.read())
-except Exception as e:
-logger.info(f'{e}')
-if qrm_config:
-    # logger.info(f"{'qrm_config', qrm_config}")
-    # logger.info(f"{'file_path', file_path}")
-    season_path = get_season_path(file_path)
-    # logger.info(f"{'season_path', season_path}")
-    if 'data_list' in qrm_config:
-        logger.info('检测到 qb-rss-manager 的 旧版 格式数据')
-        for x in qrm_config['data_list']:
-            if format_path(x[5]) == format_path(season_path):
-                if x[4]:
-                    try:
-                        offset_str = x[4]
-                        logger.info(f"{'QRM获取到 offset_str', offset_str}")
-                    except:
-                        pass
-    else:
-        logger.info('检测到 qb-rss-manager 的 v1 格式数据')
-        for data_group in qrm_config['data_dump']['data_groups']:
-            for x in data_group['data']:
-                if format_path(x['savePath']) == format_path(season_path):
-                    if x['rename_offset']:
-                        try:
-                            offset_str = x['rename_offset']
-                            logger.info(f"{'QRM获取到 offset_str', offset_str}")
-                        except:
-                            pass
+                with open(config_path_tmp, encoding='utf-8') as f:
+                    qrm_config = json.loads(f.read())
+            except Exception as e:
+                logger.info(f'{e}')
+        if qrm_config:
+            # logger.info(f"{'qrm_config', qrm_config}")
+            # logger.info(f"{'file_path', file_path}")
+            season_path = get_season_path(file_path)
+            # logger.info(f"{'season_path', season_path}")
+            if 'data_list' in qrm_config:
+                logger.info('检测到 qb-rss-manager 的 旧版 格式数据')
+                for x in qrm_config['data_list']:
+                    if format_path(x[5]) == format_path(season_path):
+                        if x[4]:
+                            try:
+                                offset_str = x[4]
+                                logger.info(f"{'QRM获取到 offset_str', offset_str}")
+                            except:
+                                pass
+            else:
+                logger.info('检测到 qb-rss-manager 的 v1 格式数据')
+                for data_group in qrm_config['data_dump']['data_groups']:
+                    for x in data_group['data']:
+                        if format_path(x['savePath']) == format_path(season_path):
+                            if x['rename_offset']:
+                                try:
+                                    offset_str = x['rename_offset']
+                                    logger.info(f"{'QRM获取到 offset_str', offset_str}")
+                                except:
+                                    pass
     # 集数修正
-if offset_str:
-    try:
-        offset_str = offset_str.strip().replace(' ', '')
-        if offset_str[0] in ['+', '-']:
-            # 如果有 + - 号做标记 说明要减去负数
-            offset = - int(offset_str)
-        else:
-            # 没有标记 直接减掉这个数
-            offset = int(offset_str)
+    if offset_str:
+        try:
+            offset_str = offset_str.strip().replace(' ', '')
+            if offset_str[0] in ['+', '-']:
+                # 如果有 + - 号做标记 说明要减去负数
+                offset = - int(offset_str)
+            else:
+                # 没有标记 直接减掉这个数
+                offset = int(offset_str)
 
-        if '.' in ep:
-            ep_int, ep_tail = ep.split('.')
-            ep_int = int(ep_int)
-            if int(ep_int) >= offset:
-                ep_int = ep_int - offset
-                ep = str(ep_int) + '.' + ep_tail
-        else:
-            ep_int = int(ep)
-            if ep_int >= offset:
-                ep = str(ep_int - offset)
-    except:
-        return ep
+            if '.' in ep:
+                ep_int, ep_tail = ep.split('.')
+                ep_int = int(ep_int)
+                if int(ep_int) >= offset:
+                    ep_int = ep_int - offset
+                    ep = str(ep_int) + '.' + ep_tail
+            else:
+                ep_int = int(ep)
+                if ep_int >= offset:
+                    ep = str(ep_int - offset)
+        except:
+            return ep
 
-return zero_fix(ep)
+    return zero_fix(ep)
+
 
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
