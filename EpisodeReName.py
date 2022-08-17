@@ -387,7 +387,7 @@ def get_season_and_ep(file_path):
         # 兼容v2命名
         '(\d{1,4}(\.5)?)[Vv]?\d?',
         # 兼容END命名
-        '(\d{1,4}(\.5)?)\s?(?i:END)?',
+        '(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?',
     ]
     # 括号和内容组合起来
     pats = []
@@ -493,7 +493,7 @@ def get_season_and_ep(file_path):
                 return ep
 
             # 兼容END命名
-            pat = '(\d{1,4}(\.5)?)\s?(?i:END)?'
+            pat = '(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
