@@ -288,6 +288,8 @@ pyinstaller -F -w EpisodeReName.py
 
 感谢 `**楷` 赞助的5元!
 
+感谢 `*睿` 赞助的5元! 备注: 感谢您的自动命名工具
+
 感谢Jetbrins公司提供的Pycharm编辑器!
 
 [![Jetbrains](docs/jetbrains.svg)](https://jb.gg/OpenSource)
