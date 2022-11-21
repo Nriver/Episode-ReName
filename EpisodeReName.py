@@ -246,8 +246,8 @@ def get_season(parent_folder_name):
         return '0'
 
     try:
-        if 'season ' in parent_folder_name.lower():
-            s = str(int(parent_folder_name.lower().replace('season ', '').strip()))
+        if 'season' in parent_folder_name.lower():
+            s = str(int(parent_folder_name.lower().replace('season', '').strip()))
             season = s.zfill(2)
         elif parent_folder_name.lower()[0] == 's':
             season = str(int(parent_folder_name[1:])).strip().zfill(2)
