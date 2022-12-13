@@ -636,6 +636,14 @@ def ep_offset_patch(file_path, ep):
     return zero_fix(ep)
 
 
+def clean_name(s):
+    # 解析为空，清理末尾
+    s = s.strip()
+    if s.endswith('-'):
+        s = s[:-1].strip()
+    return s
+
+
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
     # 删除多余文件
@@ -692,7 +700,7 @@ if os.path.isdir(target_path):
                 # 系列名称
                 series = get_series_from_season_path(season_path)
                 # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
-                new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
+                new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
 
                 if custom_replace_pair:
                     # 自定义替换关键字
@@ -725,7 +733,7 @@ else:
             # 系列名称
             series = get_series_from_season_path(season_path)
             # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
-            new_name = name_format.format(**locals()) + '.' + fix_ext(ext)
+            new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
 
             if custom_replace_pair:
                 # 自定义替换关键字
