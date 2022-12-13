@@ -151,8 +151,16 @@ D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1" 15
 
 使用方法示例
 
+延迟1秒后重命名, 如果有同名文件, 取消重命名操作
+
 ```
 EpisodeReName.exe --path D:\down\XXX\s2 --delay 1 --overwrite 0
+```
+
+(测试）命名格式修改，识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --name_format "S{season}E{ep} - {resolution}"
 ```
 
 使用 `-h` 参数查看支持的参数
@@ -170,6 +178,7 @@ D:\Test\EpisodeReName.exe -h
                         强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt
   --name_format NAME_FORMAT
                         (慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 series系列名称 如 "{series} - S{season}E{ep}"
+                        可以加入分辨率解析，程序会尝试从文件名提取分辨率 如 "S{season}E{ep} - {resolution}"
   --force_rename FORCE_RENAME
                         (慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启
 ```
@@ -245,6 +254,8 @@ pyinstaller -F -w EpisodeReName.py
 # 主要文件说明
 
 `EpisodeReName.py` 重命名工具主程序
+
+`utils` 工具类
 
 `make_exe.bat` 将python脚本打包成exe, 依赖[pyinstaller](https://github.com/pyinstaller/pyinstaller)模块
 
