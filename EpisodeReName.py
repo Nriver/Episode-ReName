@@ -8,6 +8,8 @@ import time
 from datetime import datetime
 from itertools import product
 
+from utils.resolution_util import get_resolution_in_name
+
 try:
     from loguru import logger
 except:
@@ -95,6 +97,7 @@ else:
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 0
     # EpisodeReName.exe --path E:\test\极端试验样本\S1 --delay 1 --overwrite 0
+    # python EpisodeReName.py --path /home/nate/data/极端试验样本/s1/ --delay 1 --overwrite 1 --name_format "S{season}E{ep} - {resolution}"
 
     ap = argparse.ArgumentParser()
     ap.add_argument('--path', required=True, help='目标路径')
@@ -679,6 +682,7 @@ if os.path.isdir(target_path):
             file_path = os.path.abspath(file_path)
             parent_folder_path = os.path.dirname(file_path)
             season, ep = get_season_and_ep(file_path)
+            resolution = get_resolution_in_name(name)
             logger.info(f'{season, ep}')
             # 重命名
             if season and ep:
@@ -713,6 +717,7 @@ else:
     parent_folder_path = os.path.dirname(file_path)
     if ext.lower() in COMPOUND_EXTS:
         season, ep = get_season_and_ep(file_path)
+        resolution = get_resolution_in_name(name)
         if season and ep:
             # 修正集数
             ep = ep_offset_patch(file_path, ep)
