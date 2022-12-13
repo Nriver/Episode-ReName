@@ -668,7 +668,7 @@ if os.path.isdir(target_path):
                 continue
 
             # 忽略部分文件
-            if name.lower() in ['season.nfo', 'all.txt']:
+            if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
                 continue
             file_name, ext = get_file_name_ext(name)
 
