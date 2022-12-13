@@ -110,6 +110,9 @@ else:
     ap.add_argument('--name_format', required=False,
                     help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
                     default='S{season}E{ep}')
+    ap.add_argument('--parse_resolution', required=False,
+                    help='(慎用) 识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 1为开启, 0为不开启. 开启后传入的 name_format 参数会失效, 强制设置为 "S{season}E{ep} - {resolution}"',
+                    default=0)
     ap.add_argument('--force_rename', required=False,
                     help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
                     default=0)
@@ -122,8 +125,12 @@ else:
     rename_delay = args['delay']
     rename_overwrite = args['overwrite']
     name_format = args['name_format']
+    parse_resolution = args['parse_resolution']
     force_rename = args['force_rename']
     custom_replace_pair = args['replace']
+
+    if parse_resolution:
+        name_format = 'S{season}E{ep} - {resolution}'
 
 if not target_path:
     # 没有路径参数直接退出

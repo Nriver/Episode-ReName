@@ -157,9 +157,10 @@ D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1" 15
 EpisodeReName.exe --path D:\down\XXX\s2 --delay 1 --overwrite 0
 ```
 
-(测试）命名格式修改，识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`
+(测试）命名格式修改，识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 以下两个命令效果相同
 
 ```
+EpisodeReName.exe --path D:\down\XXX\s2 --parse_resolution 1
 EpisodeReName.exe --path D:\down\XXX\s2 --name_format "S{season}E{ep} - {resolution}"
 ```
 
