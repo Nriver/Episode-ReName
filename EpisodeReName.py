@@ -217,6 +217,11 @@ def fix_ext(ext):
 
 def get_file_name_ext(file_full_name):
     # 获取文件名和后缀
+
+    # 特殊情况处理
+    if '.' not in file_full_name:
+        return file_full_name, ''
+
     file_name = None
     ext = None
 
