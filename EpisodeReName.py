@@ -748,7 +748,7 @@ else:
     parent_folder_path = os.path.dirname(file_path)
     if ext.lower() in COMPOUND_EXTS:
         season, ep = get_season_and_ep(file_path)
-        resolution = get_resolution_in_name(name)
+        resolution = get_resolution_in_name(file_name)
         if season and ep:
             # 修正集数
             ep = ep_offset_patch(file_path, ep)
