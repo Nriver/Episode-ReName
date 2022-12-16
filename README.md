@@ -260,6 +260,14 @@ pyinstaller -F -w EpisodeReName.py
 
 `make_exe.bat` 将python脚本打包成exe, 依赖[pyinstaller](https://github.com/pyinstaller/pyinstaller)模块
 
+## 处理带有数字的剧集名称
+
+`ignore` 文件
+
+如果剧集中带有年份等数字, 程序可能会将剧集标题中的数字误认为是集数. 要处理这种文件, 可以在`EpisodeReName`
+主程序同目录下创建一个名为`ignore`的文件.
+把完整的剧集名称输入进去, 一行一个剧集名称, 程序就会在获取集数时忽略这些文字. 注意文件要使用`utf-8`编码.
+
 # 多季番剧tmdb集数适配
 
 对于有多季的番剧, 比如鬼灭之刃28集, 在tmdb里没有第28集, 而是第2季第2集, 要正确削刮需要从S02E28改成S02E02.

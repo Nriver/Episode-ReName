@@ -142,6 +142,17 @@ if not target_path:
 
 target_path = target_path.replace('\\', '/').replace('//', '/')
 
+# 忽略字符串, 用于处理剧集名字中带数字的文件, 提取信息时忽略这些字符串
+# ignore 文件必须用utf-8编码
+ignores = []
+ignore_file = os.path.join(application_path, 'ignore')
+if os.path.exists(ignore_file):
+    with open(ignore_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and line not in ignores:
+                ignores.append(line)
+
 # 需要重命名的文件后缀
 COMMON_MEDIA_EXTS = [
     'flv',
@@ -298,6 +309,11 @@ def get_series_from_season_path(season_path):
 
 def get_season_and_ep(file_path):
     logger.info(f"{'解析文件', file_path}")
+
+    # 去掉ignore文件中忽略的字符串，防止解析错误
+    for x in ignores:
+        file_path = file_path.replace(x, '')
+
     season = None
     ep = None
 
