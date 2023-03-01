@@ -1,5 +1,10 @@
 # Episode-ReName
 
+[![Github all releases](https://img.shields.io/github/downloads/Nriver/Episode-ReName/total.svg)](https://GitHub.com/Nriver/Episode-ReName/releases/)
+[![GitHub license](https://badgen.net/github/license/Nriver/Episode-ReName)](https://github.com/Nriver/Episode-ReName/blob/master/LICENSE)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Nriver/Episode-ReName/graphs/commit-activity)
+[![GitHub release](https://img.shields.io/github/v/release/Nriver/Episode-ReName.svg)](https://github.com/Nriver/Episode-ReName/releases/)
+
 [懒人包下载](https://github.com/Nriver/qb-rss-manager/tree/main/aio)
 
 电视剧/番剧自动化重命名工具. 本工具可以对大部分资源进行重命名处理. 主要是给资源重命名后给Emby, Jellyfin, Tiny Media
