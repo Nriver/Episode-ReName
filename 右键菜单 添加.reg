@@ -1,14 +1,14 @@
 Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\*\shell\EpisodeReName]
 @="自动剧集命名"
-"Icon"="E:\\test\\自动剧集命名工具\\EpisodeReName.exe,0"
+"Icon"="E:\\gitRepo\\Episode-ReName\\EpisodeReName.exe,0"
 
 [HKEY_CLASSES_ROOT\*\shell\EpisodeReName\command]
-@="E:\\test\\自动剧集命名工具\\EpisodeReName.exe --path \"%1\" --overwrite 1"
+@="E:\\gitRepo\\Episode-ReName\\EpisodeReName.exe --path \"%1\" --overwrite 1"
 
 [HKEY_CLASSES_ROOT\Directory\shell\EpisodeReName]
 @="自动剧集命名"
-"Icon"="E:\\test\\自动剧集命名工具\\EpisodeReName.exe,0"
+"Icon"="E:\\gitRepo\\Episode-ReName\\EpisodeReName.exe,0"
 
 [HKEY_CLASSES_ROOT\Directory\shell\EpisodeReName\command]
-@="E:\\test\\自动剧集命名工具\\EpisodeReName.exe --path \"%1\" --overwrite 1"
+@="E:\\gitRepo\\Episode-ReName\\EpisodeReName.exe --path \"%1\" --overwrite 1"

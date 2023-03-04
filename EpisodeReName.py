@@ -643,12 +643,8 @@ def ep_offset_patch(file_path, ep):
     if offset_str:
         try:
             offset_str = offset_str.strip().replace(' ', '')
-            if offset_str[0] in ['+', '-']:
-                # 如果有 + - 号做标记 说明要减去负数
-                offset = - int(offset_str)
-            else:
-                # 没有标记 直接减掉这个数
-                offset = int(offset_str)
+            # 直接取整数, 正数为减少, 负数是增加
+            offset = int(offset_str)
 
             if '.' in ep:
                 ep_int, ep_tail = ep.split('.')
