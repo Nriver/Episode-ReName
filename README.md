@@ -20,7 +20,7 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 
 注意3: 请不将本程序放在含有空格的路径中, 路径可以有中文但是不能有空格, 切记！
 
-<a href="https://count.getloli.com"><img align="center" src="https://count.getloli.com/get/@Nriver_Episode-ReName"></a><br>
+<a href="https://github.com/Nriver"><img align="center" src="https://moe-counter--nriver1.repl.co/get/@Nriver_Episode-ReName"></a><br>
 
 # 目录
 
