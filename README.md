@@ -1,4 +1,4 @@
-# Episode-ReName
+# 📝 Episode-ReName
 
 [![Github all releases](https://img.shields.io/github/downloads/Nriver/Episode-ReName/total.svg)](https://GitHub.com/Nriver/Episode-ReName/releases/)
 [![GitHub license](https://badgen.net/github/license/Nriver/Episode-ReName)](https://github.com/Nriver/Episode-ReName/blob/master/LICENSE)
@@ -11,6 +11,8 @@
 Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自动重命名,
 具体使用方法请看下面的说明.
 
+# ⚠️ 注意
+
 注意0: 本工具是**命令行**工具, 没有界面, 没有界面, 没有界面, 不要问我为什么双击exe没有反应!
 
 注意1: 需要重命名的文件必须在类似 `Season 1`, `s1` 的目录中才会被处理. 这样设置是为了防止误操作.
@@ -22,33 +24,35 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 
 <a href="https://github.com/Nriver"><img align="center" src="https://moe-counter--nriver1.repl.co/get/@Nriver_Episode-ReName"></a><br>
 
-# 目录
+# 🦮 目录
 
 <!--ts-->
 
-* [Episode-ReName](#episode-rename)
-* [目录](#目录)
-* [使用场景1 - 右键菜单调用](#使用场景1---右键菜单调用)
-* [使用场景2 - windows的qbitorrent下载后自动重命名](#使用场景2---windows的qbitorrent下载后自动重命名)
-* [使用场景3 - 群晖套件版qbittorrent下载后自动重命名](#使用场景3---群晖套件版qbittorrent下载后自动重命名)
-* [使用场景4 - docker版qbittorrent下载后自动重命名](#使用场景4---docker版qbittorrent下载后自动重命名)
-* [使用场景5 - windows命令行运行](#使用场景5---windows命令行运行)
-    * [简易参数模式](#简易参数模式)
-    * [复杂参数模式](#复杂参数模式)
-* [使用场景6 - Linux终端运行](#使用场景6---linux终端运行)
-* [脚本编译成可执行程序](#脚本编译成可执行程序)
-* [强制的规范元数据结构](#强制的规范元数据结构)
-* [工具主要功能和处理逻辑](#工具主要功能和处理逻辑)
-* [主要文件说明](#主要文件说明)
-    * [处理带有数字的剧集名称](#处理带有数字的剧集名称)
-* [多季番剧tmdb集数适配](#多季番剧tmdb集数适配)
-* [Stargazers 数据](#stargazers-数据)
-* [捐赠](#捐赠)
-* [感谢](#感谢)
+* [Episode-ReName](#-episode-rename)
+* [注意](#️-注意)
+* [目录](#-目录)
+* [使用场景1 - 右键菜单调用](#使用场景1----右键菜单调用)
+* [使用场景2 - windows的qbitorrent下载后自动重命名](#使用场景2----windows的qbitorrent下载后自动重命名)
+* [使用场景3 - 群晖套件版qbittorrent下载后自动重命名](#使用场景3----群晖套件版qbittorrent下载后自动重命名)
+* [使用场景4 - docker版qbittorrent下载后自动重命名](#使用场景4----docker版qbittorrent下载后自动重命名)
+* [使用场景5 - windows命令行运行](#使用场景5----windows命令行运行)
+   * [简易参数模式](#-简易参数模式)
+   * [复杂参数模式](#-复杂参数模式)
+* [使用场景6 - Linux终端运行](#使用场景6----linux终端运行)
+* [脚本编译成可执行程序](#️-脚本编译成可执行程序)
+* [强制的规范元数据结构](#-强制的规范元数据结构)
+* [工具主要功能和处理逻辑](#️-工具主要功能和处理逻辑)
+* [主要文件说明](#-主要文件说明)
+   * [处理带有数字的剧集名称](#-处理带有数字的剧集名称)
+* [多季番剧tmdb集数适配](#-多季番剧tmdb集数适配)
+* [Stargazers 数据](#-stargazers-数据)
+* [捐赠](#-捐赠)
+* [感谢](#-感谢)
+
 
 <!--te-->
 
-# 使用场景1 - 右键菜单调用
+# 使用场景1 - 📁 右键菜单调用
 
 右键菜单快速重命名
 
@@ -63,7 +67,7 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 
 注：可以多选进行批量操作. win10多选超过15个, 右键菜单会消失, 可以运行`win10 右键多文件限制修改.reg`将限制修改成999个.
 
-# 使用场景2 - windows的qbitorrent下载后自动重命名
+# 使用场景2 - 📥 windows的qbitorrent下载后自动重命名
 
 ![qb下载自动重命名](docs/qb下载自动重命名.gif)
 
@@ -90,10 +94,10 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 
 具体参数请看下面的`复杂参数模式`章节
 
-# 使用场景3 - 群晖套件版qbittorrent下载后自动重命名
+# 使用场景3 - 📥 群晖套件版qbittorrent下载后自动重命名
 
 1. 群晖需要安装qbittorrent套件和python3套件
-2. 群晖的qb使用的是admin账户, 请将`EpisodeReName.py`和`custom_rules.py`放到群晖File Station的`homes/admin`
+2. 群晖的qb使用的是admin账户, 请将`EpisodeReName.py`和`custom_rules.py`, `utils`目录放到群晖File Station的`homes/admin`
    目录下, 或者手动通过ssh上传到`/var/services/homes/admin`目录 或 `/volume1/homes/admin`目录
 3. 设置下载后自动运行改名，修改qb配置: `下载` 勾选 `Torrent 完成时运行外部程序`,
    下面填上
@@ -104,11 +108,11 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
 
-# 使用场景4 - docker版qbittorrent下载后自动重命名
+# 使用场景4 - 🐳 docker版qbittorrent下载后自动重命名
 
 测试了以下三个镜像 `linuxserver/qbittorrent`, `superng6/qbittorrentee`, `johngong/qbittorrent`, 其它镜像操作也是类似的
 
-1. 下载 `EpisodeReName.py`和`custom_rules.py` 到docker的宿主机上
+1. 下载 `EpisodeReName.py`和`custom_rules.py`, `utils`目录到docker的宿主机上
 2. 复制到docker容器里，这里以从宿主机复制到docker容器根目录 `/` 为例
 
 linuxserver和johngong用这个命令复制
@@ -136,9 +140,9 @@ python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1
 
 注: 以上方法写入的文件在更新镜像后可能会被删除，你可以把py文件放到你自己映射的下载目录里，改好对应的路径就行
 
-# 使用场景5 - windows命令行运行
+# 使用场景5 - 🪟 windows命令行运行
 
-## 简易参数模式
+## 😊 简易参数模式
 
 可以直接传入文件路径, 注意有空格的路径加双引号
 
@@ -153,7 +157,7 @@ D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1"
 D:\Test\EpisodeReName.exe "D:\我的番剧\XXX\Season 1" 15
 ```
 
-## 复杂参数模式
+## 🤯 复杂参数模式
 
 使用方法示例
 
@@ -190,7 +194,7 @@ D:\Test\EpisodeReName.exe -h
                         (慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启
 ```
 
-# 使用场景6 - Linux终端运行
+# 使用场景6 - 🐧 Linux终端运行
 
 本程序支持在linux中运行, 需要python3运行环境
 
@@ -214,7 +218,7 @@ python3 -m pip install -r requirements.txt --user
 python3 EpisodeReName.py "/home/user/我的番剧/XXX/Season 1"
 ```
 
-# 脚本编译成可执行程序
+# 🛠️ 脚本编译成可执行程序
 
 如果你想自己将python脚本打包成exe, 需要python3运行环境.
 
@@ -238,7 +242,7 @@ pyinstaller -F EpisodeReName.py
 pyinstaller -F -w EpisodeReName.py
 ```
 
-# 强制的规范元数据结构
+# 📜 强制的规范元数据结构
 
 1. 剧季文件夹：Season1 / Season 1 / s1 / S1
 2. 媒体源文件：SxxExx (.mkv / .mp4 等常见视频格式)
@@ -247,7 +251,7 @@ pyinstaller -F -w EpisodeReName.py
 5. 剧集缩略图：SxxExx-thumb (.jpg / .png)
 6. 剧季元数据：season.nfo
 
-# 工具主要功能和处理逻辑
+# 🕹️ 工具主要功能和处理逻辑
 
 1. 对剧季命名以外的文件夹无效
 2. 根据保存的剧季目录命名集号
@@ -258,7 +262,7 @@ pyinstaller -F -w EpisodeReName.py
 7. 如果4步命名成功则继续执行5, 6
 8. 如果第4步命名不成功则终止后续操作
 
-# 主要文件说明
+# 📄 主要文件说明
 
 `EpisodeReName.py` 重命名工具主程序
 
@@ -266,7 +270,7 @@ pyinstaller -F -w EpisodeReName.py
 
 `make_exe.bat` 将python脚本打包成exe, 依赖[pyinstaller](https://github.com/pyinstaller/pyinstaller)模块
 
-## 处理带有数字的剧集名称
+## 🚩 处理带有数字的剧集名称
 
 `ignore` 文件
 
@@ -274,7 +278,7 @@ pyinstaller -F -w EpisodeReName.py
 主程序同目录下创建一个名为`ignore`的文件.
 把完整的剧集名称输入进去, 一行一个剧集名称, 程序就会在获取集数时忽略这些文字. 注意文件要使用`utf-8`编码.
 
-# 多季番剧tmdb集数适配
+# 💡 多季番剧tmdb集数适配
 
 对于有多季的番剧, 比如鬼灭之刃28集, 在tmdb里没有第28集, 而是第2季第2集, 要正确削刮需要从S02E28改成S02E02.
 
@@ -286,7 +290,7 @@ pyinstaller -F -w EpisodeReName.py
 
 ---
 
-# Stargazers 数据
+# ⏳ Stargazers 数据
 
 统计图使用 [caarlos0/starcharts](https://github.com/caarlos0/starcharts) 项目生成.
 
@@ -294,7 +298,7 @@ pyinstaller -F -w EpisodeReName.py
 
 ---
 
-# 捐赠
+# 💰 捐赠
 
 如果你觉得我做的程序对你有帮助, 欢迎捐赠, 这对我来说是莫大的鼓励!
 
@@ -306,7 +310,7 @@ pyinstaller -F -w EpisodeReName.py
 
 ---
 
-# 感谢
+# 🙏 感谢
 
 感谢某位不愿意透露姓名的朋友, 没有他的帮助, 就没有这个工具的诞生.
 
