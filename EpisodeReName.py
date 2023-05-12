@@ -442,7 +442,8 @@ def get_season_and_ep(file_path):
             pat += bracket_pair[0] + '.*?' + bracket_pair[1] + '|'
         pat = pat[:-1]
         # 兼容某些用 - 分隔的文件
-        pat += '|\-'
+        pat += '|\-|\_'
+        logger.info(f'pat {pat}')
         res = re.split(pat, file_name)
         # 过滤空字符串
         res = list(filter(None, res))
