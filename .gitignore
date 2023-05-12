@@ -1,4 +1,5 @@
 # nate's custom ignore
+config.json
 *.log
 *.tmp
 EpisodeReName.exe
