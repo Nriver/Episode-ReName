@@ -790,6 +790,13 @@ if rename_delay:
 
 logger.info(f"{'file_lists', file_lists}")
 
+# 检查旧的文件数量和新的文件数量是否一致，防止文件被覆盖
+old_list = set([x[0] for x in file_lists])
+new_list = set([x[1] for x in file_lists])
+if len(old_list) != len(new_list):
+    logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。请检查文件命名'}")
+    sys.exit()
+
 # 错误记录
 error_logs = []
 
