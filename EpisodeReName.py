@@ -77,6 +77,12 @@ rename_overwrite = True
 # logger.info(sys.argv)
 # print(sys.argv)
 
+# # 测试
+# if not getattr(sys, 'frozen', False) and len(sys.argv) == 1:
+#     # 直接运行的目标路径
+#     # sys.argv.append(r'\\DSM\DSM_share5\season1\aaa E02 AAA.mp4')
+#     sys.argv.append(r'\\DSM\DSM_share5\season1')
+
 if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     # 旧版的命令解析
     # 简单通过判断是否有 - 来区分新旧参数
@@ -135,12 +141,10 @@ else:
 if not target_path:
     # 没有路径参数直接退出
     sys.exit()
-    # 1 / 0
-    # 直接运行的目标路径
-    target_path = r'E:\test\极端试验样本'
-    target_path = r'E:\test\极端试验样本\S1'
 
-target_path = target_path.replace('\\', '/').replace('//', '/')
+# 除samba格式的路径外 其它格式的路径斜杠统一处理
+if not target_path.startswith(r'\\'):
+    target_path = target_path.replace('\\', '/').replace('//', '/')
 
 # 忽略字符串, 用于处理剧集名字中带数字的文件, 提取信息时忽略这些字符串
 # ignore 文件必须用utf-8编码
@@ -287,10 +291,22 @@ def get_season(parent_folder_name):
 
 def format_path(file_path):
     # 修正路径斜杠
-    if system == 'Windows':
-        return file_path.replace('//', '/').replace('/', '\\')
-    return file_path.replace('\\', '/').replace('//', '/')
 
+    # samba路径特殊处理
+    if file_path.startswith('//'):
+        return '\\' + file_path.replace('//', '/').replace('/', '\\')
+    else:
+        if system == 'Windows':
+            return file_path.replace('//', '/').replace('/', '\\')
+        return file_path.replace('\\', '/').replace('//', '/')
+
+def get_absolute_path(file_path):
+    # 获取绝对路径
+    if file_path.startswith(r'\\'):
+        # samba 路径特殊处理
+        return file_path.replace('\\', '/')
+    else:
+        return os.path.abspath(target_path.replace('\\', '/'))
 
 def get_season_cascaded(full_path):
     # 逐级向上解析目录季数
@@ -713,8 +729,7 @@ if os.path.isdir(target_path):
                 continue
 
             # 完整文件路径
-            file_path = os.path.join(root, name).replace('\\', '/')
-            file_path = os.path.abspath(file_path)
+            file_path = get_absolute_path(os.path.join(root, name))
             parent_folder_path = os.path.dirname(file_path)
             season, ep = get_season_and_ep(file_path)
             resolution = get_resolution_in_name(name)
@@ -747,7 +762,7 @@ if os.path.isdir(target_path):
 else:
     logger.info(f"{'单文件处理'}")
     logger.info(f'{target_path}')
-    file_path = os.path.abspath(target_path.replace('\\', '/'))
+    file_path = get_absolute_path(target_path)
     file_name, ext = get_file_name_ext(target_path)
     parent_folder_path = os.path.dirname(file_path)
     if ext.lower() in COMPOUND_EXTS:
