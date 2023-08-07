@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from itertools import product
 
-from utils.resolution_util import get_resolution_in_name
+from utils.resolution_util import get_resolution_in_name, resolution_dict
 
 try:
     from loguru import logger
@@ -81,7 +81,10 @@ rename_overwrite = True
 # if not getattr(sys, 'frozen', False) and len(sys.argv) == 1:
 #     # 直接运行的目标路径
 #     # sys.argv.append(r'\\DSM\DSM_share5\season1\aaa E02 AAA.mp4')
-#     sys.argv.append(r'\\DSM\DSM_share5\season1')
+#     # sys.argv.append(r'\\DSM\DSM_share5\season1')
+#     # sys.argv.append(r'E:\test\极端试验样本\s01\极端试验样本 - S01E01.mp4')
+#     # sys.argv.append(r'E:\test\极端试验样本\s01\S01E01 - 720p.mp4')
+#     sys.argv.append(r'E:\test\极端试验样本\s01')
 
 if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     # 旧版的命令解析
@@ -96,6 +99,9 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
         rename_delay = int(sys.argv[2])
         logger.info(f"{'rename_delay', rename_delay}")
     name_format = 'S{season}E{ep}'
+    # name_format = '{series} - S{season}E{ep}'
+    # name_format = 'S{season}E{ep} - {resolution}'
+    name_format_bypass = True
     force_rename = 0
     custom_replace_pair = ""
 else:
@@ -116,6 +122,9 @@ else:
     ap.add_argument('--name_format', required=False,
                     help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
                     default='S{season}E{ep}')
+    ap.add_argument('--name_format_bypass', required=False,
+                    help='(慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤',
+                    default=0)
     ap.add_argument('--parse_resolution', required=False,
                     help='(慎用) 识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 1为开启, 0为不开启. 开启后传入的 name_format 参数会失效, 强制设置为 "S{season}E{ep} - {resolution}"',
                     default=0)
@@ -131,6 +140,7 @@ else:
     rename_delay = args['delay']
     rename_overwrite = args['overwrite']
     name_format = args['name_format']
+    name_format_bypass = args['name_format_bypass']
     parse_resolution = args['parse_resolution']
     force_rename = args['force_rename']
     custom_replace_pair = args['replace']
@@ -688,6 +698,15 @@ def clean_name(s):
         s = s[:-1].strip()
     return s
 
+def name_format_bypass_check(name):
+    """检查是否已满足 name_format """
+    tmp_pat = '^' + name_format.replace('{season}', '\d+').replace('{ep}', '\d+').replace('{series}', series).replace('{resolution}', '(' + '|'.join(resolution_dict.values()) + ')') + '$'
+    # logger.info(name)
+    # logger.info(tmp_pat)
+    res = re.match(tmp_pat, name)
+    if res:
+        return True
+    return False
 
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
@@ -744,6 +763,9 @@ if os.path.isdir(target_path):
                 # 系列名称
                 series = get_series_from_season_path(season_path)
                 # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
+                if name_format_bypass and name_format_bypass_check(file_name):
+                    logger.info('命名已满足 name_format 跳过')
+                    continue
                 new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
 
                 if custom_replace_pair:
@@ -765,7 +787,8 @@ else:
     logger.info(f"{'单文件处理'}")
     logger.info(f'{target_path}')
     file_path = get_absolute_path(target_path)
-    file_name, ext = get_file_name_ext(target_path)
+    file_full_name = os.path.basename(file_path)
+    file_name, ext = get_file_name_ext(file_full_name)
     parent_folder_path = os.path.dirname(file_path)
     if ext.lower() in COMPOUND_EXTS:
         season, ep = get_season_and_ep(file_path)
@@ -777,6 +800,9 @@ else:
             # 系列名称
             series = get_series_from_season_path(season_path)
             # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
+            if name_format_bypass and name_format_bypass_check(file_name):
+                logger.info('当前命名已满足 name_format 的格式, 退出')
+                exit()
             new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
 
             if custom_replace_pair:
