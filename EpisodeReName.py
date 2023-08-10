@@ -176,6 +176,7 @@ COMMON_MEDIA_EXTS = [
     'rmvb',
     'm2ts',
     'wmv',
+    'nfo',
 ]
 
 # 字幕文件
@@ -710,35 +711,39 @@ def name_format_bypass_check(name):
 
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
-    # 删除多余文件
-    for root, dirs, files in os.walk(target_path, topdown=False):
-        for name in files:
-            file_path = os.path.join(root, name).replace('\\', '/')
-            file_path = os.path.abspath(file_path)
-            # 不在 Season 目录下不处理
-            # 父级文件夹
-            parent_folder_path = os.path.dirname(file_path)
+    def check_and_delete_redundant_file(file_path):
+        """
+        删除多余文件 返回值表示文件是否已经删除
 
-            _ = get_season_cascaded(parent_folder_path)
-            if not _:
-                # logger.info(f"{'不在season文件夹内 忽略'}")
-                continue
+        :param file_path:
+        :return:
+        """
+        # 不在 Season 目录下不处理
+        # 父级文件夹
+        parent_folder_path = os.path.dirname(file_path)
 
-            # 忽略部分文件
-            if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
-                continue
-            file_name, ext = get_file_name_ext(name)
+        _ = get_season_cascaded(parent_folder_path)
+        if not _:
+            # logger.info(f"{'不在season文件夹内 忽略'}")
+            return False
 
-            # 只处理特定后缀
-            if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
-                continue
+        # 忽略部分文件
+        if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
+            return False
+        file_name, ext = get_file_name_ext(name)
 
-            res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
-            if res:
-                continue
-            else:
-                logger.info(f'{file_path}')
-                os.remove(file_path)
+        # 只处理特定后缀
+        if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
+            return False
+
+        res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
+        if res:
+            return False
+        else:
+            logger.info(f'{file_path}')
+            os.remove(file_path)
+            return True
+
 
     # 遍历文件夹
     for root, dirs, files in os.walk(target_path, topdown=False):
@@ -766,6 +771,10 @@ if os.path.isdir(target_path):
                 if name_format_bypass and name_format_bypass_check(file_name):
                     logger.info('命名已满足 name_format 跳过')
                     continue
+                if check_and_delete_redundant_file(file_name):
+                    logger.info(f'多余文件, 删除 {file_name}')
+                    continue
+
                 new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
 
                 if custom_replace_pair:
