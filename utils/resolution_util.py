@@ -1,5 +1,6 @@
 import os
 
+
 resolution_dict = {
     # 分辨率
     # https://www.displayninja.com/720p-vs-1080p-vs-1440p-vs-4k-vs-8k/

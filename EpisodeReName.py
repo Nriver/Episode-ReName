@@ -21,6 +21,7 @@ except:
         def warning(s):
             print(f'| WARNING  | {s}')
 
+
 #     应该能解析出大部分的命名规则了
 # ''')
 from custom_rules import starts_with_rules
@@ -113,27 +114,47 @@ else:
 
     ap = argparse.ArgumentParser()
     ap.add_argument('--path', required=True, help='目标路径')
-    ap.add_argument('--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int,
-                    default=0)
-    ap.add_argument('--overwrite', required=False,
-                    help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt',
-                    type=int,
-                    default=1)
-    ap.add_argument('--name_format', required=False,
-                    help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
-                    default='S{season}E{ep}')
-    ap.add_argument('--name_format_bypass', required=False,
-                    help='(慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤',
-                    default=0)
-    ap.add_argument('--parse_resolution', required=False,
-                    help='(慎用) 识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 1为开启, 0为不开启. 开启后传入的 name_format 参数会失效, 强制设置为 "S{season}E{ep} - {resolution}"',
-                    default=0)
-    ap.add_argument('--force_rename', required=False,
-                    help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启', type=int,
-                    default=0)
-    ap.add_argument('--replace', required=False, type=str, nargs='+', action='append',
-                    help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
-                    default=[])
+    ap.add_argument(
+        '--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0
+    )
+    ap.add_argument(
+        '--overwrite',
+        required=False,
+        help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt',
+        type=int,
+        default=1,
+    )
+    ap.add_argument(
+        '--name_format',
+        required=False,
+        help='(慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}" ',
+        default='S{season}E{ep}',
+    )
+    ap.add_argument(
+        '--name_format_bypass', required=False, help='(慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤', default=0
+    )
+    ap.add_argument(
+        '--parse_resolution',
+        required=False,
+        help='(慎用) 识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 1为开启, 0为不开启. 开启后传入的 name_format 参数会失效, 强制设置为 "S{season}E{ep} - {resolution}"',
+        default=0,
+    )
+    ap.add_argument(
+        '--force_rename',
+        required=False,
+        help='(慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启',
+        type=int,
+        default=0,
+    )
+    ap.add_argument(
+        '--replace',
+        required=False,
+        type=str,
+        nargs='+',
+        action='append',
+        help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
+        default=[],
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -210,8 +231,11 @@ COMMON_LANG = [
 ]
 
 # 混合后缀
-COMPOUND_EXTS = COMMON_MEDIA_EXTS + ['.'.join(x) for x in
-                                     list(product(COMMON_LANG, COMMON_CAPTION_EXTS))] + COMMON_CAPTION_EXTS
+COMPOUND_EXTS = (
+    COMMON_MEDIA_EXTS
+    + ['.'.join(x) for x in list(product(COMMON_LANG, COMMON_CAPTION_EXTS))]
+    + COMMON_CAPTION_EXTS
+)
 
 
 def fix_ext(ext):
@@ -245,7 +269,7 @@ def get_file_name_ext(file_full_name):
     for x in COMPOUND_EXTS:
         if file_full_name.lower().endswith(x):
             ext = x
-            file_name = file_full_name[:-(len(x) + 1)]
+            file_name = file_full_name[: -(len(x) + 1)]
             break
     if not ext:
         file_name, ext = file_full_name.rsplit('.', 1)
@@ -588,7 +612,7 @@ def get_season_path(file_path):
     # 获取season目录
     b = os.path.dirname(file_path.replace('\\', '/'))
     season_path = None
-    while (b):
+    while b:
         if not '/' in b:
             break
         b, fo = b.rsplit('/', 1)
@@ -603,7 +627,7 @@ def ep_offset_patch(file_path, ep):
     # 20220721 修改集数修正修正规则：可以用 + - 符号标记修正数值, 表达更直观
     b = os.path.dirname(file_path.replace('\\', '/'))
     offset_str = None
-    while (b):
+    while b:
         if offset_str:
             break
         if not '/' in b:
@@ -637,7 +661,6 @@ def ep_offset_patch(file_path, ep):
             except Exception as e:
                 logger.info(f"{'config_ern.json 读取错误', e}")
         elif os.path.exists(config_path_tmp):
-
             try:
                 with open(config_path_tmp, encoding='utf-8') as f:
                     qrm_config = json.loads(f.read())
@@ -699,9 +722,17 @@ def clean_name(s):
         s = s[:-1].strip()
     return s
 
+
 def name_format_bypass_check(name):
-    """检查是否已满足 name_format """
-    tmp_pat = '^' + name_format.replace('{season}', '\d+').replace('{ep}', '\d+').replace('{series}', series).replace('{resolution}', '(' + '|'.join(resolution_dict.values()) + ')') + '$'
+    """检查是否已满足 name_format"""
+    tmp_pat = (
+        '^'
+        + name_format.replace('{season}', '\d+')
+        .replace('{ep}', '\d+')
+        .replace('{series}', series)
+        .replace('{resolution}', '(' + '|'.join(resolution_dict.values()) + ')')
+        + '$'
+    )
     # logger.info(name)
     # logger.info(tmp_pat)
     res = re.match(tmp_pat, name)
@@ -709,8 +740,10 @@ def name_format_bypass_check(name):
         return True
     return False
 
+
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
+
     def check_and_delete_redundant_file(file_path):
         """
         删除多余文件 返回值表示文件是否已经删除
@@ -744,11 +777,9 @@ if os.path.isdir(target_path):
             os.remove(file_path)
             return True
 
-
     # 遍历文件夹
     for root, dirs, files in os.walk(target_path, topdown=False):
         for name in files:
-
             # 只处理媒体文件
             file_name, ext = get_file_name_ext(name)
             if not ext.lower() in COMPOUND_EXTS:
@@ -854,12 +885,12 @@ if len(old_list) != len(new_list):
 error_logs = []
 
 for old, new in file_lists:
-
     if not rename_overwrite:
         # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
         if os.path.exists(new):
             error_logs.append(
-                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在')
+                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在'
+            )
             continue
 
     # 默认遇到文件存在则强制删除已存在文件
