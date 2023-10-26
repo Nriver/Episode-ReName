@@ -324,6 +324,8 @@ pyinstaller -F -w EpisodeReName.py
 
 感谢 `*メ` 赞助的200元!
 
+感谢 `A*` 赞助的100元! 备注: 非常感謝你寫這個小程式，捐贈了小小的心意給你及保重身體!
+
 感谢Jetbrins公司提供的Pycharm编辑器!
 
 [![Jetbrains](docs/jetbrains.svg)](https://jb.gg/OpenSource)
