@@ -788,7 +788,11 @@ if os.path.isdir(target_path):
             # 完整文件路径
             file_path = get_absolute_path(os.path.join(root, name))
             parent_folder_path = os.path.dirname(file_path)
-            season, ep = get_season_and_ep(file_path)
+            try:
+                season, ep = get_season_and_ep(file_path)
+            except ValueError as e:
+                logger.error(e)
+                season, ep = None, None
             resolution = get_resolution_in_name(name)
             logger.info(f'{season, ep}')
             # 重命名
@@ -875,10 +879,13 @@ if rename_delay:
 logger.info(f"{'file_lists', file_lists}")
 
 # 检查旧的文件数量和新的文件数量是否一致，防止文件被覆盖
-old_list = set([x[0] for x in file_lists])
-new_list = set([x[1] for x in file_lists])
-if len(old_list) != len(new_list):
+new_set = set([x[1] for x in file_lists])
+if len(new_set) != len(file_lists):
     logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。请检查文件命名'}")
+    new_list = [x[1] for x in file_lists]
+    for file in new_set:
+        if new_list.count(file) > 1:
+            logger.warning(f"{'重复文件', file}")
     sys.exit()
 
 # 错误记录
