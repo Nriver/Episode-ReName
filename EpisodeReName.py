@@ -398,7 +398,7 @@ def get_season_and_ep(file_path):
         if force_rename:
             season, ep = res[1], res[2]
             season = str(int(season)).zfill(2)
-            ep = str(int(ep)).zfill(2)
+            ep = ep_format(ep)
             return season, ep
         else:
             return None, None
@@ -409,14 +409,14 @@ def get_season_and_ep(file_path):
     if res:
         season, ep = res[0][0], res[0][1]
         season = str(int(season)).zfill(2)
-        ep = str(int(ep)).zfill(2)
+        ep = ep_format(ep)
         return season, ep
     pat = '[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
     res = re.findall(pat, file_name.upper())
     if res:
         season, ep = res[0][0], res[0][1]
         season = str(int(season)).zfill(2)
-        ep = str(int(ep)).zfill(2)
+        ep = ep_format(ep)
         return season, ep
 
     season = get_season_cascaded(parent_folder_path)
@@ -440,7 +440,7 @@ def get_season_and_ep(file_path):
                         logger.info(f"{'根据特殊规则找到了集数'}")
                         ep = res[0]
                         season = str(int(season)).zfill(2)
-                        ep = str(int(ep)).zfill(2)
+                        ep = ep_format(ep)
                         return season, ep
                 except Exception as e:
                     logger.info(f'{e}')
@@ -620,6 +620,16 @@ def get_season_path(file_path):
         if get_season(fo):
             season_path = b + '/' + fo
     return season_path
+
+
+def ep_format(ep):
+    # 格式化ep, 兼容 .5 格式
+    if '.' in ep:
+        ep_int, ep_tail = ep.split('.', 1)
+        ep = str(int(ep_int)).zfill(2) + '.' + ep_tail
+    else:
+        ep = str(int(ep)).zfill(2)
+    return ep
 
 
 def ep_offset_patch(file_path, ep):
