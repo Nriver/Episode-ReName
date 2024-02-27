@@ -6,9 +6,11 @@ import re
 import sys
 import time
 from datetime import datetime
-from itertools import product
 
-from utils.resolution_util import get_resolution_in_name, resolution_dict
+from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
+from utils.file_name_utils import clean_name
+from utils.path_utils import format_path, get_absolute_path
+from utils.resolution_utils import get_resolution_in_name, resolution_dict
 
 try:
     from loguru import logger
@@ -58,13 +60,6 @@ if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(os.path.realpath(sys.executable))
 elif __file__:
     application_path = os.path.dirname(os.path.realpath(__file__))
-
-
-def resource_path(relative_path):
-    # 兼容pyinstaller的文件资源访问
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath('.'), relative_path)
 
 
 # if len(sys.argv) < 2:
@@ -197,94 +192,6 @@ if os.path.exists(ignore_file):
             if line and line not in ignores:
                 ignores.append(line)
 
-# 需要重命名的文件后缀
-COMMON_MEDIA_EXTS = [
-    'flv',
-    'mkv',
-    'mp4',
-    'avi',
-    'rmvb',
-    'm2ts',
-    'wmv',
-    'nfo',
-]
-
-# 字幕文件
-COMMON_CAPTION_EXTS = [
-    'srt',
-    'ass',
-    'ssa',
-    'sub',
-    'smi',
-]
-
-# 语言文件
-COMMON_LANG = [
-    # 特殊命名处理
-    'chs&jpn',
-    'cht&jpn',
-    'scjp',
-    'tcjp',
-    # 一般命名
-    'cn',
-    'chs',
-    'cht',
-    'zh',
-    'sc',
-    'tc',
-    'jp',
-    'jap',
-    'jpn',
-    'en',
-    'eng',
-]
-
-# 混合后缀
-COMPOUND_EXTS = (
-    COMMON_MEDIA_EXTS
-    + ['.'.join(x) for x in list(product(COMMON_LANG, COMMON_CAPTION_EXTS))]
-    + COMMON_CAPTION_EXTS
-)
-
-
-def fix_ext(ext):
-    # 文件扩展名修正
-    # 1.统一小写
-    # 2.字幕文件 把sc替换成chs, tc替换成cht, jap替换成jpn
-    new_ext = ext.lower()
-
-    # 双重生成器
-    ori_list = [f'{y}.{x}' for x in COMMON_CAPTION_EXTS for y in ['sc', 'tc', 'jap']]
-    new_list = [f'{y}.{x}' for x in COMMON_CAPTION_EXTS for y in ['chs', 'cht', 'jpn']]
-
-    for i, x in enumerate(ori_list):
-        if new_ext == x:
-            new_ext = new_list[i]
-            break
-
-    return new_ext
-
-
-def get_file_name_ext(file_full_name):
-    # 获取文件名和后缀
-
-    # 特殊情况处理
-    if '.' not in file_full_name:
-        return file_full_name, ''
-
-    file_name = None
-    ext = None
-
-    for x in COMPOUND_EXTS:
-        if file_full_name.lower().endswith(x):
-            ext = x
-            file_name = file_full_name[: -(len(x) + 1)]
-            break
-    if not ext:
-        file_name, ext = file_full_name.rsplit('.', 1)
-
-    return file_name, ext
-
 
 # 输出结果列表
 file_lists = []
@@ -331,27 +238,6 @@ def get_season(parent_folder_name):
         pass
 
     return season
-
-
-def format_path(file_path):
-    # 修正路径斜杠
-
-    # samba路径特殊处理
-    if file_path.startswith('//'):
-        return '\\' + file_path.replace('//', '/').replace('/', '\\')
-    else:
-        if system == 'Windows':
-            return file_path.replace('//', '/').replace('/', '\\')
-        return file_path.replace('\\', '/').replace('//', '/')
-
-
-def get_absolute_path(file_path):
-    # 获取绝对路径
-    if file_path.startswith(r'\\'):
-        # samba 路径特殊处理
-        return file_path.replace('\\', '/')
-    else:
-        return os.path.abspath(file_path.replace('\\', '/'))
 
 
 def get_season_cascaded(full_path):
@@ -734,14 +620,6 @@ def ep_offset_patch(file_path, ep):
     return zero_fix(ep)
 
 
-def clean_name(s):
-    # 解析为空，清理末尾
-    s = s.strip()
-    if s.endswith('-'):
-        s = s[:-1].strip()
-    return s
-
-
 def name_format_bypass_check(name):
     """检查是否已满足 name_format"""
     tmp_pat = (
@@ -760,41 +638,42 @@ def name_format_bypass_check(name):
     return False
 
 
+def check_and_delete_redundant_file(file_path):
+    """
+    删除多余文件 返回值表示文件是否已经删除
+
+    :param file_path:
+    :return:
+    """
+    # 不在 Season 目录下不处理
+    # 父级文件夹
+    parent_folder_path = os.path.dirname(file_path)
+
+    _ = get_season_cascaded(parent_folder_path)
+    if not _:
+        # logger.info(f"{'不在season文件夹内 忽略'}")
+        return False
+
+    # 忽略部分文件
+    if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
+        return False
+    file_name, ext = get_file_name_ext(name)
+
+    # 只处理特定后缀
+    if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
+        return False
+
+    res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
+    if res:
+        return False
+    else:
+        logger.info(f'{file_path}')
+        os.remove(file_path)
+        return True
+
+
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
-
-    def check_and_delete_redundant_file(file_path):
-        """
-        删除多余文件 返回值表示文件是否已经删除
-
-        :param file_path:
-        :return:
-        """
-        # 不在 Season 目录下不处理
-        # 父级文件夹
-        parent_folder_path = os.path.dirname(file_path)
-
-        _ = get_season_cascaded(parent_folder_path)
-        if not _:
-            # logger.info(f"{'不在season文件夹内 忽略'}")
-            return False
-
-        # 忽略部分文件
-        if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
-            return False
-        file_name, ext = get_file_name_ext(name)
-
-        # 只处理特定后缀
-        if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
-            return False
-
-        res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
-        if res:
-            return False
-        else:
-            logger.info(f'{file_path}')
-            os.remove(file_path)
-            return True
 
     # 遍历文件夹
     for root, dirs, files in os.walk(target_path, topdown=False):

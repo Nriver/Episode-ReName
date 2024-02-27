@@ -1,5 +1,6 @@
 import os
 
+# 分辨率工具
 
 resolution_dict = {
     # 分辨率
