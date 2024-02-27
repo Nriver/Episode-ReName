@@ -188,10 +188,18 @@ D:\Test\EpisodeReName.exe -h
   --overwrite OVERWRITE
                         强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt
   --name_format NAME_FORMAT
-                        (慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 series系列名称 如 "{series} - S{season}E{ep}"
-                        可以加入分辨率解析，程序会尝试从文件名提取分辨率 如 "S{season}E{ep} - {resolution}"
+                        (慎用) 自定义重命名格式, 参数需要加引号 默认为 "S{season}E{ep}" 可以选择性加入 系列名称如 "{series} - S{season}E{ep}"
+  --name_format_bypass NAME_FORMAT_BYPASS
+                        (慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤
+  --parse_resolution PARSE_RESOLUTION
+                        (慎用) 识别分辨率，输出结果类似于 `S01E01 - 1080p.mp4`, 1为开启, 0为不开启. 开启后传入的 name_format 参数会失效, 强制设置为
+                        "S{season}E{ep} - {resolution}"
   --force_rename FORCE_RENAME
                         (慎用) 即使已经是标准命名, 也强制重新改名, 默认为0不开启, 1是开启
+  --replace REPLACE [REPLACE ...]
+                        自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换 成chi, 可以写多组关键字
+  --use_folder_as_season USE_FOLDER_AS_SEASON
+                        优先使用父级文件夹中的季数来代替文件名中的季数, 默认为0不开启, 1是开启
 ```
 
 # 使用场景6 - 🐧 Linux终端运行
