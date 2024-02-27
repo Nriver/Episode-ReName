@@ -105,6 +105,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     name_format_bypass = True
     force_rename = 0
     custom_replace_pair = ""
+    use_folder_as_season = 0
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -155,6 +156,13 @@ else:
         help='自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换成chi, 可以写多组关键字',
         default=[],
     )
+    ap.add_argument(
+        '--use_folder_as_season',
+        required=False,
+        help='优先使用父级文件夹中的季数来代替文件名中的季数, 默认为0不开启, 1是开启',
+        type=int,
+        default=0,
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -165,6 +173,7 @@ else:
     parse_resolution = args['parse_resolution']
     force_rename = args['force_rename']
     custom_replace_pair = args['replace']
+    use_folder_as_season = args['use_folder_as_season']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
@@ -803,6 +812,10 @@ if os.path.isdir(target_path):
             except ValueError as e:
                 logger.error(e)
                 season, ep = None, None
+            # 是否从父级目录获取季数
+            if use_folder_as_season:
+                season = get_season_cascaded(file_path)
+
             resolution = get_resolution_in_name(name)
             logger.info(f'{season, ep}')
             # 重命名
@@ -846,6 +859,10 @@ else:
     parent_folder_path = os.path.dirname(file_path)
     if ext.lower() in COMPOUND_EXTS:
         season, ep = get_season_and_ep(file_path)
+        # 是否从父级目录获取季数
+        if use_folder_as_season:
+            season = get_season_cascaded(file_path)
+
         resolution = get_resolution_in_name(file_name)
         if season and ep:
             # 修正集数
