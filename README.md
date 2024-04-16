@@ -200,6 +200,8 @@ D:\Test\EpisodeReName.exe -h
                         自定义替换关键字, 一般是给字幕用, 用法 `--replace chs chi --replace cht chi` 就能把chs和cht替换 成chi, 可以写多组关键字
   --use_folder_as_season USE_FOLDER_AS_SEASON
                         优先使用父级文件夹中的季数来代替文件名中的季数, 默认为0不开启, 1是开启
+  --del_empty_folder DEL_EMPTY_FOLDER
+                        删除空的子目录, 默认为0不开启, 1是开启
 ```
 
 # 使用场景6 - 🐧 Linux终端运行
