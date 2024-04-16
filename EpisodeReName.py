@@ -10,6 +10,7 @@ from datetime import datetime
 from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
 from utils.file_name_utils import clean_name
 from utils.path_utils import format_path, get_absolute_path
+from utils.path_utils import format_path, get_absolute_path, delete_empty_dirs
 from utils.resolution_utils import get_resolution_in_name, resolution_dict
 
 try:
@@ -101,6 +102,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     force_rename = 0
     custom_replace_pair = ""
     use_folder_as_season = 0
+    del_empty_folder = 0
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -158,6 +160,13 @@ else:
         type=int,
         default=0,
     )
+    ap.add_argument(
+        '--del_empty_folder',
+        required=False,
+        help='删除空的子目录, 默认为0不开启, 1是开启',
+        type=int,
+        default=0,
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -169,6 +178,7 @@ else:
     force_rename = args['force_rename']
     custom_replace_pair = args['replace']
     use_folder_as_season = args['use_folder_as_season']
+    del_empty_folder = args['del_empty_folder']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
@@ -820,6 +830,10 @@ for old, new in file_lists:
         os.rename(tmp_name, new)
     except:
         pass
+
+if del_empty_folder:
+    logger.info('删除空的子目录')
+    delete_empty_dirs(target_path)
 
 if error_logs:
     error_file = os.path.join(application_path, 'error.txt')

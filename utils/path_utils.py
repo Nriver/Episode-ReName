@@ -1,6 +1,8 @@
 import os
 import platform
 
+from loguru import logger
+
 # 当前系统类型
 system = platform.system()
 
@@ -24,3 +26,13 @@ def get_absolute_path(file_path):
         return file_path.replace('\\', '/')
     else:
         return os.path.abspath(file_path.replace('\\', '/'))
+
+
+def delete_empty_dirs(root_dir):
+    # 删除空的子目录
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        for dirname in dirnames:
+            dir_full_path = os.path.join(dirpath, dirname)
+            if not os.listdir(dir_full_path):
+                logger.info(f'删除空目录: {dir_full_path}')
+                os.rmdir(dir_full_path)
