@@ -7,11 +7,13 @@ import sys
 import time
 from datetime import datetime
 
+from utils.ep_utils import ep_format
 from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
-from utils.file_name_utils import clean_name
-from utils.path_utils import format_path, get_absolute_path
+from utils.file_name_utils import clean_name, zero_fix
 from utils.path_utils import format_path, get_absolute_path, delete_empty_dirs
 from utils.resolution_utils import get_resolution_in_name, resolution_dict
+from utils.season_utils import get_season_cascaded, get_season, get_season_path
+from utils.series_utils import get_series_from_season_path
 
 try:
     from loguru import logger
@@ -209,67 +211,6 @@ unknown = []
 
 # 当前系统类型
 system = platform.system()
-
-
-def zero_fix(s):
-    # 统一补0
-    if not s:
-        return s
-    # 删0
-    s = s.lstrip('0')
-    # 补0
-    s = s.zfill(2)
-    if '.' in s and s.index('.') == 1:
-        s = '0' + s
-    return s
-
-
-def get_season(parent_folder_name):
-    # 获取季数
-
-    # 兼容
-    # 'Season 2'
-    # 'Season2'
-    # 's2'
-    # 'S2'
-    season = None
-
-    if parent_folder_name == 'Specials':
-        # 兼容SP
-        return '0'
-
-    try:
-        if 'season' in parent_folder_name.lower():
-            s = str(int(parent_folder_name.lower().replace('season', '').strip()))
-            season = s.zfill(2)
-        elif parent_folder_name.lower()[0] == 's':
-            season = str(int(parent_folder_name[1:])).strip().zfill(2)
-    except:
-        pass
-
-    return season
-
-
-def get_season_cascaded(full_path):
-    # 逐级向上解析目录季数
-    full_path = os.path.abspath(full_path).replace('\\', '/').replace('//', '/')
-    parent_folder_names = full_path.split('/')[::-1]
-    season = None
-    for parent_folder_name in parent_folder_names:
-        season = get_season(parent_folder_name)
-        if season:
-            break
-    return season
-
-
-def get_series_from_season_path(season_path):
-    """修正系列名称获取 去掉结尾的年份"""
-    series = os.path.basename(os.path.dirname(season_path))
-    pat = '\(\d{4}\)$'
-    res = re.search(pat, series)
-    if res:
-        series = series[:-6].strip()
-    return series
 
 
 def get_season_and_ep(file_path):
@@ -511,30 +452,6 @@ def get_season_and_ep(file_path):
     ep = zero_fix(ep)
 
     return season, ep
-
-
-def get_season_path(file_path):
-    # 获取season目录
-    b = os.path.dirname(file_path.replace('\\', '/'))
-    season_path = None
-    while b:
-        if not '/' in b:
-            break
-        b, fo = b.rsplit('/', 1)
-        offset = None
-        if get_season(fo):
-            season_path = b + '/' + fo
-    return season_path
-
-
-def ep_format(ep):
-    # 格式化ep, 兼容 .5 格式
-    if '.' in ep:
-        ep_int, ep_tail = ep.split('.', 1)
-        ep = str(int(ep_int)).zfill(2) + '.' + ep_tail
-    else:
-        ep = str(int(ep)).zfill(2)
-    return ep
 
 
 def ep_offset_patch(file_path, ep):
