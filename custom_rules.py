@@ -18,4 +18,10 @@ starts_with_rules = [
             r'^\[Moozzi2\] .* - (.*?) .*',
         ],
     ],
+    [
+        '[CASO&Airota&LoliHouse]',
+        [
+            r'^\[CASO\&Airota\&LoliHouse\] .* - (.*?) .*',
+        ],
+    ],
 ]
