@@ -9,8 +9,13 @@ from datetime import datetime
 
 from utils.ep_utils import ep_format
 from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
-from utils.file_name_utils import clean_name, zero_fix
-from utils.path_utils import format_path, get_absolute_path, delete_empty_dirs
+from utils.file_name_utils import clean_name, zero_fix, name_format_bypass_check
+from utils.path_utils import (
+    format_path,
+    get_absolute_path,
+    delete_empty_dirs,
+    check_and_delete_redundant_file,
+)
 from utils.resolution_utils import get_resolution_in_name, resolution_dict
 from utils.season_utils import get_season_cascaded, get_season, get_season_path
 from utils.series_utils import get_series_from_season_path
@@ -240,7 +245,7 @@ def get_season_and_ep(file_path):
     pat = 'S(\d{1,4})E(\d{1,4}(\.5)?)'
     res = re.match(pat, file_name)
     if res:
-        logger.info(f"{'忽略'}")
+        logger.info(f"{'忽略识别: 已按规则命名'}")
         if force_rename:
             season, ep = res[1], res[2]
             season = str(int(season)).zfill(2)
@@ -547,71 +552,25 @@ def ep_offset_patch(file_path, ep):
     return zero_fix(ep)
 
 
-def name_format_bypass_check(name):
-    """检查是否已满足 name_format"""
-    tmp_pat = (
-        '^'
-        + name_format.replace('{season}', '\d+')
-        .replace('{ep}', '\d+')
-        .replace('{series}', series)
-        .replace('{resolution}', '(' + '|'.join(resolution_dict.values()) + ')')
-        + '$'
-    )
-    # logger.info(name)
-    # logger.info(tmp_pat)
-    res = re.match(tmp_pat, name)
-    if res:
-        return True
-    return False
-
-
-def check_and_delete_redundant_file(file_path):
-    """
-    删除多余文件 返回值表示文件是否已经删除
-
-    :param file_path:
-    :return:
-    """
-    # 不在 Season 目录下不处理
-    # 父级文件夹
-    parent_folder_path = os.path.dirname(file_path)
-
-    _ = get_season_cascaded(parent_folder_path)
-    if not _:
-        # logger.info(f"{'不在season文件夹内 忽略'}")
-        return False
-
-    # 忽略部分文件
-    if name.lower() in ['clearlogo.png', 'season.nfo', 'all.txt']:
-        return False
-    file_name, ext = get_file_name_ext(name)
-
-    # 只处理特定后缀
-    if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
-        return False
-
-    res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
-    if res:
-        return False
-    else:
-        logger.info(f'{file_path}')
-        os.remove(file_path)
-        return True
-
-
 if os.path.isdir(target_path):
     logger.info(f"{'文件夹处理'}")
 
     # 遍历文件夹
     for root, dirs, files in os.walk(target_path, topdown=False):
         for name in files:
+            # 完整文件路径
+            file_path = get_absolute_path(os.path.join(root, name))
+
+            # 删除多余文件
+            if check_and_delete_redundant_file(file_path):
+                logger.warning(f'多余文件, 删除 {file_path}')
+                continue
+
             # 只处理媒体文件
             file_name, ext = get_file_name_ext(name)
             if not ext.lower() in COMPOUND_EXTS:
                 continue
 
-            # 完整文件路径
-            file_path = get_absolute_path(os.path.join(root, name))
             parent_folder_path = os.path.dirname(file_path)
             try:
                 season, ep = get_season_and_ep(file_path)
@@ -623,7 +582,7 @@ if os.path.isdir(target_path):
                 season = get_season_cascaded(file_path)
 
             resolution = get_resolution_in_name(name)
-            logger.info(f'{season, ep}')
+            logger.info(f'识别结果: {season, ep}')
             # 重命名
             if season and ep:
                 # 修正集数
@@ -632,11 +591,10 @@ if os.path.isdir(target_path):
                 # 系列名称
                 series = get_series_from_season_path(season_path)
                 # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
-                if name_format_bypass and name_format_bypass_check(file_name):
+                if name_format_bypass and name_format_bypass_check(
+                    file_name, name_format, series, resolution_dict
+                ):
                     logger.info('命名已满足 name_format 跳过')
-                    continue
-                if check_and_delete_redundant_file(file_name):
-                    logger.info(f'多余文件, 删除 {file_name}')
                     continue
 
                 new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
@@ -653,7 +611,7 @@ if os.path.isdir(target_path):
                     new_path = parent_folder_path + '/' + new_name
                 file_lists.append([format_path(file_path), format_path(new_path)])
             else:
-                logger.info(f"{'未能识别'}")
+                logger.info(f"{'未能识别 season 和 ep'}")
                 unknown.append(file_path)
 
 else:
@@ -677,7 +635,9 @@ else:
             # 系列名称
             series = get_series_from_season_path(season_path)
             # new_name = f'S{season}E{ep}' + '.' + fix_ext(ext)
-            if name_format_bypass and name_format_bypass_check(file_name):
+            if name_format_bypass and name_format_bypass_check(
+                file_name, name_format, series, resolution_dict
+            ):
                 logger.info('当前命名已满足 name_format 的格式, 退出')
                 exit()
             new_name = clean_name(name_format.format(**locals())) + '.' + fix_ext(ext)
@@ -695,13 +655,14 @@ else:
 
             file_lists.append([file_path, new_path])
         else:
-            logger.info(f"{'未能识别'}")
+            logger.info(f"{'未能识别 season 和 ep'}")
             unknown.append(file_path)
 
 if unknown:
     logger.info(f"{'----- 未识别文件 -----'}")
     for x in unknown:
         logger.info(f'{x}')
+    logger.info(f"{'--------------------'}")
 
 if rename_delay:
     # 自动运行改名
@@ -709,7 +670,12 @@ if rename_delay:
     # 程序运行太快 会导致重命名失败 估计是文件被锁了 这里故意加个延迟(秒)
     time.sleep(rename_delay)
 
-logger.info(f"{'file_lists', file_lists}")
+
+if file_lists:
+    logger.info(f"{'----- 重命名文件列表 -----'}")
+    for x in file_lists:
+        logger.info(f'{x}')
+    logger.info(f"{'-----------------------'}")
 
 # 检查旧的文件数量和新的文件数量是否一致，防止文件被覆盖
 new_set = set([x[1] for x in file_lists])
