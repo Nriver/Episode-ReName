@@ -7,6 +7,7 @@ import sys
 import time
 from datetime import datetime
 
+from utils.config_utils import get_qrm_config
 from utils.ep_utils import ep_format
 from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
 from utils.file_name_utils import clean_name, zero_fix, name_format_bypass_check
@@ -110,6 +111,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     custom_replace_pair = ""
     use_folder_as_season = 0
     del_empty_folder = 0
+    priority_match = 0
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -174,6 +176,13 @@ else:
         type=int,
         default=0,
     )
+    ap.add_argument(
+        '--priority_match',
+        required=False,
+        help='(慎用) 目标文件如果存在，会导致覆盖操作的时候，优先保留满足第一组匹配规则的文件，如果新文件不满足匹配，则删除新文件。默认为0不开启, 1是开启',
+        type=int,
+        default=0,
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -186,6 +195,7 @@ else:
     custom_replace_pair = args['replace']
     use_folder_as_season = args['use_folder_as_season']
     del_empty_folder = args['del_empty_folder']
+    priority_match = args['priority_match']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
@@ -486,23 +496,8 @@ def ep_offset_patch(file_path, ep):
     # 1. config_ern.json 配置
     # 2. 这两个exe在同一个目录下, 直接读取配置
     if not offset_str:
-        qrm_config = None
-        config_ern_path_tmp = os.path.join(application_path, 'config_ern.json')
-        config_path_tmp = os.path.join(application_path, 'config.json')
-        if os.path.exists(config_ern_path_tmp):
-            try:
-                with open(config_ern_path_tmp, encoding='utf-8') as f:
-                    qrm_config_file = json.loads(f.read())['qrm_config_file']
-                with open(qrm_config_file, encoding='utf-8') as f:
-                    qrm_config = json.loads(f.read())
-            except Exception as e:
-                logger.info(f"{'config_ern.json 读取错误', e}")
-        elif os.path.exists(config_path_tmp):
-            try:
-                with open(config_path_tmp, encoding='utf-8') as f:
-                    qrm_config = json.loads(f.read())
-            except Exception as e:
-                logger.info(f'{e}')
+        qrm_config = get_qrm_config(application_path)
+
         if qrm_config:
             # logger.info(f"{'qrm_config', qrm_config}")
             # logger.info(f"{'file_path', file_path}")
@@ -698,6 +693,39 @@ for old, new in file_lists:
                 f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在'
             )
             continue
+
+    # 目标文件如果存在，会导致覆盖操作的时候，优先保留满足第一组匹配规则的文件
+    # 如果新文件不满足匹配，则删除新文件。
+    if priority_match and os.path.exists(new):
+        qrm_config = get_qrm_config(application_path)
+        if qrm_config:
+            logger.info('分析第一组匹配规则位满足情况')
+            season_path = get_season_path(old)
+            logger.info(f'season_path {season_path}')
+            must_contain = ''
+            for data_group in qrm_config['data_dump']['data_groups']:
+                for x in data_group['data']:
+                    if format_path(x['savePath']) == format_path(season_path):
+                        if x['mustContain']:
+                            try:
+                                must_contain = x['mustContain']
+                                logger.info(f"{'QRM获取到 must_contain', must_contain}")
+                            except:
+                                pass
+            first_match = must_contain.split(' ')[0]
+            logger.info(f'分离第一组匹配规则条件 first_match: {first_match}')
+            if first_match:
+                file_full_name = os.path.basename(old)
+                if not (first_match.lower() in file_full_name.lower()):
+                    logger.info('已存在文件情况下，新文件未满足第一组匹配规则，删除当前文件')
+                    try:
+                        os.remove(old)
+                    except:
+                        pass
+                    continue
+                else:
+                    logger.info('满足优先规则，重命名当前文件')
+
 
     # 默认遇到文件存在则强制删除已存在文件
     try:
