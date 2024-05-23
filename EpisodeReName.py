@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import platform
 import re
@@ -7,10 +6,12 @@ import sys
 import time
 from datetime import datetime
 
+from custom_rules import starts_with_rules
 from utils.config_utils import get_qrm_config
 from utils.ep_utils import ep_format
 from utils.ext_utils import COMPOUND_EXTS, get_file_name_ext, fix_ext
 from utils.file_name_utils import clean_name, zero_fix, name_format_bypass_check
+from utils.log_utils import logger
 from utils.path_utils import (
     format_path,
     get_absolute_path,
@@ -20,22 +21,6 @@ from utils.path_utils import (
 from utils.resolution_utils import get_resolution_in_name, resolution_dict
 from utils.season_utils import get_season_cascaded, get_season, get_season_path
 from utils.series_utils import get_series_from_season_path
-
-try:
-    from loguru import logger
-except:
-    # 兼容无loguru模块的环境，例如docker和群晖
-    class logger:
-        def info(s):
-            print(f'| INFO     | {s}')
-
-        def warning(s):
-            print(f'| WARNING  | {s}')
-
-
-#     应该能解析出大部分的命名规则了
-# ''')
-from custom_rules import starts_with_rules
 
 # print('''
 #     -- 警告 --
@@ -56,6 +41,8 @@ from custom_rules import starts_with_rules
 #     括号没有
 #     取剩余部分结尾的数字
 #     部分特殊处理
+#     应该能解析出大部分的命名规则了
+# ''')
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 target_path = ''
@@ -725,7 +712,6 @@ for old, new in file_lists:
                     continue
                 else:
                     logger.info('满足优先规则，重命名当前文件')
-
 
     # 默认遇到文件存在则强制删除已存在文件
     try:

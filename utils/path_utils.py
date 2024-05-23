@@ -2,9 +2,8 @@ import os
 import platform
 import re
 
-from loguru import logger
-
 from utils.ext_utils import get_file_name_ext
+from utils.log_utils import logger
 from utils.season_utils import get_season_cascaded
 
 # 当前系统类型
