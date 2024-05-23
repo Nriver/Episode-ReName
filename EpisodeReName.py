@@ -515,8 +515,43 @@ def ep_offset_patch(file_path, ep):
     if offset_str:
         try:
             offset_str = offset_str.strip().replace(' ', '')
-            # 直接取整数, 正数为减少, 负数是增加
-            offset = int(offset_str)
+            if '|' not in offset_str:
+                logger.info('单一数字类型的offset')
+                # 直接取整数, 正数为减少, 负数是增加
+                offset = int(offset_str)
+            else:
+                logger.info('多组数据的offset解析')
+                # 和 QRM 多组匹配对应的多组offset
+                # 比如: 格式 `12|0|-11` 第一组集数减12, 第二组不变, 第三组加11
+
+                if not qrm_config:
+                    logger.info('未获取到QRM的配置，默认取第一个offset')
+                    offset = int(offset_str.sptit('|')[0].strip())
+                else:
+                    # 查找QRM配置匹配的组序号
+                    index = 0
+                    for data_group in qrm_config['data_dump']['data_groups']:
+                        for x in data_group['data']:
+                            if format_path(x['savePath']) == format_path(season_path):
+                                try:
+                                    must_contain_tmp = x['mustContain']
+                                    if '|' not in must_contain_tmp:
+                                        break
+                                    else:
+                                        for i, keywords in enumerate(must_contain_tmp.split('|')):
+                                            if all(
+                                                [
+                                                    keyword.strip() in file_path
+                                                    for keyword in keywords.strip().split(' ')
+                                                ]
+                                            ):
+                                                index = i
+                                                break
+                                except:
+                                    pass
+                    # 获取offset
+                    offset = int(offset_str.split('|')[index].strip())
+                    logger.info(f'解析offset {offset}')
 
             if '.' in ep:
                 ep_int, ep_tail = ep.split('.')
