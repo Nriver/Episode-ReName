@@ -28,6 +28,8 @@ COMMON_LANG = [
     # 特殊命名处理
     'chs&jpn',
     'cht&jpn',
+    'chs&jap',
+    'cht&jap',
     'scjp',
     'tcjp',
     # 一般命名
