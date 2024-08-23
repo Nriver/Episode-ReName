@@ -1,6 +1,6 @@
 import json
 import os
-from loguru import logger
+from utils.log_utils import logger
 
 
 def get_qrm_config(application_path):
