@@ -28,8 +28,8 @@ def name_format_bypass_check(name, name_format, series, resolution_dict):
     """检查是否已满足 name_format"""
     tmp_pat = (
         '^'
-        + name_format.replace('{season}', '\d+')
-        .replace('{ep}', '\d+')
+        + name_format.replace('{season}', r'\d+')
+        .replace('{ep}', r'\d+')
         .replace('{series}', series)
         .replace('{resolution}', '(' + '|'.join(resolution_dict.values()) + ')')
         + '$'

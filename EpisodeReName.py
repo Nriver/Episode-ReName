@@ -109,7 +109,11 @@ else:
     ap = argparse.ArgumentParser()
     ap.add_argument('--path', required=True, help='目标路径')
     ap.add_argument(
-        '--delay', required=False, help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待', type=int, default=0
+        '--delay',
+        required=False,
+        help='重命名延迟(秒) 配合qb使用的参数, 默认为0秒不等待',
+        type=int,
+        default=0,
     )
     ap.add_argument(
         '--overwrite',
@@ -125,7 +129,10 @@ else:
         default='S{season}E{ep}',
     )
     ap.add_argument(
-        '--name_format_bypass', required=False, help='(慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤', default=0
+        '--name_format_bypass',
+        required=False,
+        help='(慎用) 自定义重命名格式, 对满足格式的文件忽略重命名步骤',
+        default=0,
     )
     ap.add_argument(
         '--parse_resolution',
@@ -239,7 +246,7 @@ def get_season_and_ep(file_path):
         return None, None
 
     # 忽略已按规则命名的文件
-    pat = 'S(\d{1,4})E(\d{1,4}(\.5)?)'
+    pat = r'S(\d{1,4})E(\d{1,4}(\.5)?)'
     res = re.match(pat, file_name)
     if res:
         logger.info(f"{'忽略识别: 已按规则命名'}")
@@ -252,14 +259,14 @@ def get_season_and_ep(file_path):
             return None, None
 
     # 如果文件已经有 S01EP01 或者 S01E01 直接读取
-    pat = '[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
+    pat = r'[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
     res = re.findall(pat, file_name.upper())
     if res:
         season, ep = res[0][0], res[0][1]
         season = str(int(season)).zfill(2)
         ep = ep_format(ep)
         return season, ep
-    pat = '[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
+    pat = r'[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
     res = re.findall(pat, file_name.upper())
     if res:
         season, ep = res[0][0], res[0][1]
@@ -300,8 +307,8 @@ def get_season_and_ep(file_path):
 
     # 常见的括号
     bracket_pairs = [
-        ['\[', '\]'],
-        ['\(', '\)'],
+        [r'\[', r'\]'],
+        [r'\(', r'\)'],
         ['【', '】'],
         # 日语括号
         ['「', '」'],
@@ -309,19 +316,19 @@ def get_season_and_ep(file_path):
     # 内容
     patterns = [
         # 1到4位数字
-        '(\d{1,4}(\.5)?)',
+        r'(\d{1,4}(\.5)?)',
         # 特殊文字处理
-        '第(\d{1,4}(\.5)?)集',
-        '第(\d{1,4}(\.5)?)话',
-        '第(\d{1,4}(\.5)?)話',
-        '[Ee][Pp](\d{1,4}(\.5)?)',
-        '[Ee](\d{1,4}(\.5)?)',
+        r'第(\d{1,4}(\.5)?)集',
+        r'第(\d{1,4}(\.5)?)话',
+        r'第(\d{1,4}(\.5)?)話',
+        r'[Ee][Pp](\d{1,4}(\.5)?)',
+        r'[Ee](\d{1,4}(\.5)?)',
         # 兼容SP01等命名
-        '[Ss][Pp](\d{1,4}(\.5)?)',
+        r'[Ss][Pp](\d{1,4}(\.5)?)',
         # 兼容v2命名
-        '(\d{1,4}(\.5)?)[Vv]?\d?',
+        r'(\d{1,4}(\.5)?)[Vv]?\d?',
         # 兼容END命名
-        '(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?',
+        r'(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?',
     ]
     # 括号和内容组合起来
     pats = []
@@ -343,7 +350,7 @@ def get_season_and_ep(file_path):
             pat += bracket_pair[0] + '.*?' + bracket_pair[1] + '|'
         pat = pat[:-1]
         # 兼容某些用 - 分隔的文件
-        pat += '|\-|\_'
+        pat += r'|\-|\_'
         logger.info(f'pat {pat}')
         res = re.split(pat, file_name)
         # 过滤空字符串
@@ -356,7 +363,7 @@ def get_season_and_ep(file_path):
         if not ep:
             # 部分资源命名
             # 找 第x集
-            pat = '第(\d{1,4}(\.5)?)[集话話]'
+            pat = r'第(\d{1,4}(\.5)?)[集话話]'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y)
@@ -365,7 +372,7 @@ def get_season_and_ep(file_path):
                     break
         if not ep:
             # 找 EPXX
-            pat = '[Ee][Pp](\d{1,4}(\.5)?)'
+            pat = r'[Ee][Pp](\d{1,4}(\.5)?)'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y.upper())
@@ -376,7 +383,7 @@ def get_season_and_ep(file_path):
         # 特殊命名 SExx.xx 第2季第10集 SE02.10
         if not ep:
             # logger.info(f"{'找 EXX'}")
-            pat = '[Ss][Ee](\d{1,2})\.(\d{1,2})'
+            pat = r'[Ss][Ee](\d{1,2})\.(\d{1,2})'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y.upper())
@@ -388,7 +395,7 @@ def get_season_and_ep(file_path):
         # 特殊命名 Sxx.xx 第2季第10集 s02.10
         if not ep:
             # logger.info(f"{'找 EXX'}")
-            pat = '[Ss](\d{1,2})\.(\d{1,2})'
+            pat = r'[Ss](\d{1,2})\.(\d{1,2})'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y.upper())
@@ -400,7 +407,7 @@ def get_season_and_ep(file_path):
         # 匹配顺序调整
         if not ep:
             # logger.info(f"{'找 EXX'}")
-            pat = '[Ee](\d{1,4}(\.5)?)'
+            pat = r'[Ee](\d{1,4}(\.5)?)'
             for y in res:
                 y = y.strip()
                 res_sub = re.search(pat, y.upper())
@@ -419,7 +426,7 @@ def get_season_and_ep(file_path):
             # 13.5
             # 10v2
             # 10.5v2
-            pat = '(\d{1,4}(\.5)?)[Vv]?\d?'
+            pat = r'(\d{1,4}(\.5)?)[Vv]?\d?'
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
@@ -428,7 +435,7 @@ def get_season_and_ep(file_path):
                 return ep
 
             # 兼容END命名
-            pat = '(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
+            pat = r'(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
             ep = None
             res_sub = re.search(pat, s)
             if res_sub:
@@ -436,7 +443,7 @@ def get_season_and_ep(file_path):
                 ep = res_sub.group(1)
                 return ep
 
-            pat = '\d{1,4}(\.5)?$'
+            pat = r'\d{1,4}(\.5)?$'
             res_sub = re.search(pat, s)
             if res_sub:
                 logger.info(f'{res_sub}')

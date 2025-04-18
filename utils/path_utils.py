@@ -78,7 +78,7 @@ def check_and_delete_redundant_file(file_path):
     if not ext.lower() in ['jpg', 'png', 'nfo', 'torrent']:
         return False
 
-    res = re.findall('^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
+    res = re.findall(r'^S(\d{1,4})E(\d{1,4}(\.5)?)', file_name.upper())
     if res:
         return False
     else:
