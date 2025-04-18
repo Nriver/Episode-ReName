@@ -7,6 +7,7 @@ EpisodeReName.exe
 *.mp4
 ignore
 .idea/
+.history/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
