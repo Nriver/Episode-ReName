@@ -20,6 +20,49 @@ def ep_format(ep):
     return ep
 
 
+def extract_season_and_ep_from_standard_patterns(file_name, force_rename=0):
+    """
+    从文件名中提取已经按标准格式命名的季数和集数
+
+    Args:
+        file_name: 文件名
+        force_rename: 是否强制重命名
+
+    Returns:
+        tuple: (season, ep) 季数和集数，如果不匹配则返回 (None, None)
+    """
+    # 忽略已按规则命名的文件
+    pat = r'S(\d{1,4})E(\d{1,4}(\.5)?)'
+    res = re.match(pat, file_name)
+    if res:
+        logger.info(f"{'忽略识别: 已按规则命名'}")
+        if force_rename:
+            season, ep = res[1], res[2]
+            season = str(int(season)).zfill(2)
+            ep = ep_format(ep)
+            return season, ep
+        else:
+            return None, None
+
+    # 如果文件已经有 S01EP01 或者 S01E01 直接读取
+    pat = r'[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
+    res = re.findall(pat, file_name.upper())
+    if res:
+        season, ep = res[0][0], res[0][1]
+        season = str(int(season)).zfill(2)
+        ep = ep_format(ep)
+        return season, ep
+    pat = r'[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
+    res = re.findall(pat, file_name.upper())
+    if res:
+        season, ep = res[0][0], res[0][1]
+        season = str(int(season)).zfill(2)
+        ep = ep_format(ep)
+        return season, ep
+
+    return None, None
+
+
 def get_season_and_ep(file_path, ignores, force_rename=0):
     """
     从文件路径中解析季数和集数
@@ -54,33 +97,9 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
         # logger.info(f"{'不在season文件夹内 忽略'}")
         return None, None
 
-    # 忽略已按规则命名的文件
-    pat = r'S(\d{1,4})E(\d{1,4}(\.5)?)'
-    res = re.match(pat, file_name)
-    if res:
-        logger.info(f"{'忽略识别: 已按规则命名'}")
-        if force_rename:
-            season, ep = res[1], res[2]
-            season = str(int(season)).zfill(2)
-            ep = ep_format(ep)
-            return season, ep
-        else:
-            return None, None
-
-    # 如果文件已经有 S01EP01 或者 S01E01 直接读取
-    pat = r'[Ss](\d{1,4})[Ee](\d{1,4}(\.5)?)'
-    res = re.findall(pat, file_name.upper())
-    if res:
-        season, ep = res[0][0], res[0][1]
-        season = str(int(season)).zfill(2)
-        ep = ep_format(ep)
-        return season, ep
-    pat = r'[Ss](\d{1,4})[Ee][Pp](\d{1,4}(\.5)?)'
-    res = re.findall(pat, file_name.upper())
-    if res:
-        season, ep = res[0][0], res[0][1]
-        season = str(int(season)).zfill(2)
-        ep = ep_format(ep)
+    # 尝试从标准命名格式中提取季数和集数
+    season, ep = extract_season_and_ep_from_standard_patterns(file_name, force_rename)
+    if season is not None and ep is not None:
         return season, ep
 
     season = get_season_cascaded(parent_folder_path)
