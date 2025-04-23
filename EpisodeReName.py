@@ -99,6 +99,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     use_folder_as_season = 0
     del_empty_folder = 0
     priority_match = 0
+    ignore_file_count_check = 0
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -177,6 +178,13 @@ else:
         type=int,
         default=0,
     )
+    ap.add_argument(
+        '--ignore_file_count_check',
+        required=False,
+        help='忽略旧文件数量和新文件数量不一致的检查，即使可能会覆盖文件也继续执行。默认为0不开启, 1是开启',
+        type=int,
+        default=0,
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -190,6 +198,7 @@ else:
     use_folder_as_season = args['use_folder_as_season']
     del_empty_folder = args['del_empty_folder']
     priority_match = args['priority_match']
+    ignore_file_count_check = args['ignore_file_count_check']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
@@ -349,13 +358,20 @@ if file_lists:
 
 # 检查旧的文件数量和新的文件数量是否一致，防止文件被覆盖
 new_set = set([x[1] for x in file_lists])
-if len(new_set) != len(file_lists):
+if len(new_set) != len(file_lists) and not ignore_file_count_check:
     logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。请检查文件命名'}")
     new_list = [x[1] for x in file_lists]
     for file in new_set:
         if new_list.count(file) > 1:
             logger.warning(f"{'重复文件', file}")
+    logger.info(f"{'如需忽略此检查，请使用 --ignore_file_count_check 1 参数'}")
     sys.exit()
+elif len(new_set) != len(file_lists) and ignore_file_count_check:
+    logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。已启用忽略检查，继续执行'}")
+    new_list = [x[1] for x in file_lists]
+    for file in new_set:
+        if new_list.count(file) > 1:
+            logger.warning(f"{'重复文件', file}")
 
 # 错误记录
 error_logs = []
