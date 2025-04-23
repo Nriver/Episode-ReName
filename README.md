@@ -172,6 +172,12 @@ EpisodeReName.exe --path D:\down\XXX\s2 --parse_resolution 1
 EpisodeReName.exe --path D:\down\XXX\s2 --name_format "S{season}E{ep} - {resolution}"
 ```
 
+忽略旧文件数量和新文件数量不一致的检查，即使可能会覆盖文件也继续执行
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --ignore_file_count_check 1
+```
+
 使用 `-h` 参数查看支持的参数
 
 ```
@@ -200,6 +206,8 @@ D:\Test\EpisodeReName.exe -h
                         优先使用父级文件夹中的季数来代替文件名中的季数, 默认为0不开启, 1是开启
   --del_empty_folder DEL_EMPTY_FOLDER
                         删除空的子目录, 默认为0不开启, 1是开启
+  --ignore_file_count_check IGNORE_FILE_COUNT_CHECK
+                        忽略旧文件数量和新文件数量不一致的检查，即使可能会覆盖文件也继续执行。默认为0不开启, 1是开启
 ```
 
 # 使用场景6 - 🐧 Linux终端运行
