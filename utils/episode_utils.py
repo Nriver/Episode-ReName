@@ -63,6 +63,120 @@ def extract_season_and_ep_from_standard_patterns(file_name, force_rename=0):
     return None, None
 
 
+def extract_ep_from_outside_brackets(file_name, bracket_pairs, res):
+    """
+    从括号外的内容中提取集数
+
+    Args:
+        file_name: 文件名
+        bracket_pairs: 括号对列表
+        res: 分割后的字符串列表
+
+    Returns:
+        tuple: (season, ep) 季数和集数，如果未找到则返回 (None, None)
+    """
+    season = None
+    ep = None
+
+    # 部分资源命名
+    # 找 第x集
+    pat = r'第(\d{1,4}(\.5)?)[集话話]'
+    for y in res:
+        y = y.strip()
+        res_sub = re.search(pat, y)
+        if res_sub:
+            ep = res_sub.group(1)
+            break
+    if not ep:
+        # 找 EPXX
+        pat = r'[Ee][Pp](\d{1,4}(\.5)?)'
+        for y in res:
+            y = y.strip()
+            res_sub = re.search(pat, y.upper())
+            if res_sub:
+                ep = res_sub.group(1)
+                break
+
+    # 特殊命名 SExx.xx 第2季第10集 SE02.10
+    if not ep:
+        # logger.info(f"{'找 EXX'}")
+        pat = r'[Ss][Ee](\d{1,2})\.(\d{1,2})'
+        for y in res:
+            y = y.strip()
+            res_sub = re.search(pat, y.upper())
+            if res_sub:
+                season = res_sub.group(1)
+                ep = res_sub.group(2)
+                break
+
+    # 特殊命名 Sxx.xx 第2季第10集 s02.10
+    if not ep:
+        # logger.info(f"{'找 EXX'}")
+        pat = r'[Ss](\d{1,2})\.(\d{1,2})'
+        for y in res:
+            y = y.strip()
+            res_sub = re.search(pat, y.upper())
+            if res_sub:
+                season = res_sub.group(1)
+                ep = res_sub.group(2)
+                break
+
+    # 匹配顺序调整
+    if not ep:
+        # logger.info(f"{'找 EXX'}")
+        pat = r'[Ee](\d{1,4}(\.5)?)'
+        for y in res:
+            y = y.strip()
+            res_sub = re.search(pat, y.upper())
+            if res_sub:
+                ep = res_sub.group(1)
+                break
+
+    def extract_ending_ep(s):
+        logger.info(f"{'找末尾是数字的子字符串'}")
+        s = s.strip()
+        # logger.info(f'{s}')
+        ep = None
+
+        # 兼容v2和.5格式 不兼容 9.33 格式
+        # 12.5
+        # 13.5
+        # 10v2
+        # 10.5v2
+        pat = r'(\d{1,4}(\.5)?)[Vv]?\d?'
+        ep = None
+        res_sub = re.search(pat, s)
+        if res_sub:
+            logger.info(f'{res_sub}')
+            ep = res_sub.group(1)
+            return ep
+
+        # 兼容END命名
+        pat = r'(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
+        ep = None
+        res_sub = re.search(pat, s)
+        if res_sub:
+            logger.info(f'{res_sub}')
+            ep = res_sub.group(1)
+            return ep
+
+        pat = r'\d{1,4}(\.5)?$'
+        res_sub = re.search(pat, s)
+        if res_sub:
+            logger.info(f'{res_sub}')
+            ep = res_sub.group(0)
+            return ep
+        return ep
+
+    if not ep:
+        for s in res:
+            ep = extract_ending_ep(s)
+            if ep:
+                break
+
+    return season, ep
+
+
 def get_season_and_ep(file_path, ignores, force_rename=0):
     """
     从文件路径中解析季数和集数
@@ -188,102 +302,12 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
 
         # logger.info(f'{res}')
 
-        if not ep:
-            # 部分资源命名
-            # 找 第x集
-            pat = r'第(\d{1,4}(\.5)?)[集话話]'
-            for y in res:
-                y = y.strip()
-                res_sub = re.search(pat, y)
-                if res_sub:
-                    ep = res_sub.group(1)
-                    break
-        if not ep:
-            # 找 EPXX
-            pat = r'[Ee][Pp](\d{1,4}(\.5)?)'
-            for y in res:
-                y = y.strip()
-                res_sub = re.search(pat, y.upper())
-                if res_sub:
-                    ep = res_sub.group(1)
-                    break
-
-        # 特殊命名 SExx.xx 第2季第10集 SE02.10
-        if not ep:
-            # logger.info(f"{'找 EXX'}")
-            pat = r'[Ss][Ee](\d{1,2})\.(\d{1,2})'
-            for y in res:
-                y = y.strip()
-                res_sub = re.search(pat, y.upper())
-                if res_sub:
-                    season = res_sub.group(1)
-                    ep = res_sub.group(2)
-                    break
-
-        # 特殊命名 Sxx.xx 第2季第10集 s02.10
-        if not ep:
-            # logger.info(f"{'找 EXX'}")
-            pat = r'[Ss](\d{1,2})\.(\d{1,2})'
-            for y in res:
-                y = y.strip()
-                res_sub = re.search(pat, y.upper())
-                if res_sub:
-                    season = res_sub.group(1)
-                    ep = res_sub.group(2)
-                    break
-
-        # 匹配顺序调整
-        if not ep:
-            # logger.info(f"{'找 EXX'}")
-            pat = r'[Ee](\d{1,4}(\.5)?)'
-            for y in res:
-                y = y.strip()
-                res_sub = re.search(pat, y.upper())
-                if res_sub:
-                    ep = res_sub.group(1)
-                    break
-
-        def extract_ending_ep(s):
-            logger.info(f"{'找末尾是数字的子字符串'}")
-            s = s.strip()
-            # logger.info(f'{s}')
-            ep = None
-
-            # 兼容v2和.5格式 不兼容 9.33 格式
-            # 12.5
-            # 13.5
-            # 10v2
-            # 10.5v2
-            pat = r'(\d{1,4}(\.5)?)[Vv]?\d?'
-            ep = None
-            res_sub = re.search(pat, s)
-            if res_sub:
-                logger.info(f'{res_sub}')
-                ep = res_sub.group(1)
-                return ep
-
-            # 兼容END命名
-            pat = r'(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
-            ep = None
-            res_sub = re.search(pat, s)
-            if res_sub:
-                logger.info(f'{res_sub}')
-                ep = res_sub.group(1)
-                return ep
-
-            pat = r'\d{1,4}(\.5)?$'
-            res_sub = re.search(pat, s)
-            if res_sub:
-                logger.info(f'{res_sub}')
-                ep = res_sub.group(0)
-                return ep
-            return ep
-
-        if not ep:
-            for s in res:
-                ep = extract_ending_ep(s)
-                if ep:
-                    break
+        # 从括号外内容中提取集数
+        season_from_outside, ep_from_outside = extract_ep_from_outside_brackets(file_name, bracket_pairs, res)
+        if ep_from_outside:
+            ep = ep_from_outside
+        if season_from_outside:
+            season = season_from_outside
 
     season = zero_fix(season)
     ep = zero_fix(ep)
