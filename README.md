@@ -1,5 +1,9 @@
 # 📝 Episode-ReName
 
+<p align="center">
+  <img src="docs/logo.webp" alt="Episode-ReName Logo" width="200">
+</p>
+
 [![Github all releases](https://img.shields.io/github/downloads/Nriver/Episode-ReName/total.svg)](https://GitHub.com/Nriver/Episode-ReName/releases/)
 [![GitHub license](https://badgen.net/github/license/Nriver/Episode-ReName)](https://github.com/Nriver/Episode-ReName/blob/master/LICENSE)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Nriver/Episode-ReName/graphs/commit-activity)
