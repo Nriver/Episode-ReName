@@ -64,6 +64,7 @@ elif __file__:
 # 默认配置
 rename_delay = 0
 rename_overwrite = True
+rename_interval = 0  # 每次重命名操作之间的间隔时间（秒）
 
 # logger.add(os.path.join(application_path, 'app.log'))
 # logger.info(sys.argv)
@@ -185,6 +186,13 @@ else:
         type=int,
         default=0,
     )
+    ap.add_argument(
+        '--rename_interval',
+        required=False,
+        help='每次重命名操作之间的间隔时间(秒)，用于网盘挂载等情况下避免重命名太快而客户端未及时响应导致重命名异常。默认为0秒不等待',
+        type=float,
+        default=0,
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -199,6 +207,7 @@ else:
     del_empty_folder = args['del_empty_folder']
     priority_match = args['priority_match']
     ignore_file_count_check = args['ignore_file_count_check']
+    rename_interval = args['rename_interval']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
@@ -377,6 +386,10 @@ elif len(new_set) != len(file_lists) and ignore_file_count_check:
 error_logs = []
 
 for old, new in file_lists:
+    # 添加每次重命名操作之间的间隔时间
+    if rename_interval > 0:
+        time.sleep(rename_interval)
+
     if not rename_overwrite:
         # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
         if os.path.exists(new):

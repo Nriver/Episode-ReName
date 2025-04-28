@@ -178,6 +178,12 @@ EpisodeReName.exe --path D:\down\XXX\s2 --name_format "S{season}E{ep} - {resolut
 EpisodeReName.exe --path D:\down\XXX\s2 --ignore_file_count_check 1
 ```
 
+设置每次重命名操作之间的间隔时间，避免网盘挂载模式下重命名太快而客户端未及时响应导致重命名异常
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --rename_interval 0.1
+```
+
 使用 `-h` 参数查看支持的参数
 
 ```
@@ -208,6 +214,8 @@ D:\Test\EpisodeReName.exe -h
                         删除空的子目录, 默认为0不开启, 1是开启
   --ignore_file_count_check IGNORE_FILE_COUNT_CHECK
                         忽略旧文件数量和新文件数量不一致的检查，即使可能会覆盖文件也继续执行。默认为0不开启, 1是开启
+  --rename_interval RENAME_INTERVAL
+                        每次重命名操作之间的间隔时间(秒)，用于网盘挂载等情况下避免重命名太快而客户端未及时响应导致重命名异常。默认为0秒不等待
 ```
 
 # 使用场景6 - 🐧 Linux终端运行
@@ -318,10 +326,10 @@ pyinstaller -F -w EpisodeReName.py
 
 如果你觉得我做的程序对你有帮助, 欢迎捐赠, 这对我来说是莫大的鼓励!
 
-支付宝:  
+支付宝:
 ![Alipay](docs/alipay.png)
 
-微信:  
+微信:
 ![Wechat Pay](docs/wechat_pay.png)
 
 ---
