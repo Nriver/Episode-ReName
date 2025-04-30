@@ -487,9 +487,16 @@ for index, (old, new) in enumerate(file_lists, 1):
             )
             continue
 
-    # 目标文件如果存在，会导致覆盖操作的时候，优先保留满足第一组匹配规则的文件
-    # 如果新文件不满足匹配，则删除新文件。
+    # new路径文件如果存在，会导致覆盖操作的时候，优先保留满足第一组匹配规则的文件
+    # 如果old文件不满足匹配，则删除old文件。跳过本次重命名操作。
+    # 如果old文件满足匹配，则删除new文件，继续重命名。
     if priority_match and os.path.exists(new):
+
+        if old == new:
+            # --overwrite 1 的时候必须做这个检测，不然会误判
+            logger.info('新文件和已存在文件相同，跳过匹配检测')
+            continue
+
         qrm_config = get_qrm_config(application_path)
         if qrm_config:
             logger.info('分析第一组匹配规则位满足情况')
