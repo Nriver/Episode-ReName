@@ -6,23 +6,39 @@ tree_to_file.py - 根据tree命令输出重建文件结构
 它可以从文件或标准输入读取数据。
 
 脚本解析tree输出，根据缩进和分支指示符识别目录和文件，并创建相应的结构。
+支持Linux和Windows的tree命令输出格式。
 
 使用方法:
     python tree_to_file.py [-i 输入文件] [-o 输出目录]
 
-    cat tree输出.txt | python tree_to_file.py -o 我的输出目录
+    cat sample_tree_output_linux.txt | python tree_to_file.py -o output
 
-    tree /某个/目录 > tree输出.txt
-    python tree_to_file.py -i tree输出.txt -o 重建的结构
+    tree /某个/目录 > sample_tree_output_linux.txt
+    python tree_to_file.py -i sample_tree_output_linux.txt -o output
+
+    # Windows下使用
+    tree /f > sample_tree_output_windows.txt
+    python tree_to_file.py -i sample_tree_output_windows.txt -o output
 
 输入格式:
-    输入应该是'tree'命令的标准输出，看起来像这样:
+    输入应该是'tree'命令的标准输出，支持以下两种格式:
+
+    Linux格式:
     .
     ├── 目录1
     │   ├── 文件1.txt
     │   └── 文件2.txt
     └── 目录2
         └── 文件3.txt
+
+    Windows格式:
+    E:.
+    │  文件1.txt
+    │  文件2.txt
+    │
+    └─目录1
+            文件3.txt
+            文件4.txt
 
 选项:
     -i, --input    包含tree输出的输入文件 (默认: 标准输入)
@@ -42,31 +58,84 @@ from pathlib import Path
 
 def parse_tree_line(line):
     """解析tree输出的一行，确定缩进级别和项目名称。"""
-    if not line.strip() or line.strip() == '.':
+    # 处理空行或根目录行
+    line = line.rstrip()
+    if not line.strip() or line.strip() == '.' or line.strip().endswith(':.'):
         return None, None
 
-    # 通过计算 '│   ' 或 '    ' 模式的数量来计算缩进级别
-    indent_count = 0
-    i = 0
-    while i < len(line):
-        if line[i:i+4] in ['│   ', '    ']:
-            indent_count += 1
-            i += 4
-        else:
-            break
+    # 忽略只包含垂直线或空格的行
+    if line.strip() in ['│', '|']:
+        return None, None
 
-    # 提取项目名称
-    item_name = line[i:].strip()
+    # 检测是否是Windows格式的tree输出
+    is_windows_format = '└─' in line or '│' in line and '──' not in line
 
-    # 移除tree分支指示符
-    if item_name.startswith('├── '):
-        item_name = item_name[4:]
-    elif item_name.startswith('└── '):
-        item_name = item_name[4:]
-    elif item_name.startswith('│   ├── ') or item_name.startswith('│   └── '):
-        item_name = item_name[8:]
+    if is_windows_format:
+        # Windows tree格式处理
+        indent_count = 0
+        i = 0
 
-    return indent_count, item_name
+        # 计算缩进级别
+        while i < len(line):
+            if i + 1 < len(line) and line[i:i+1] == '│':
+                indent_count += 1
+                i += 1
+                # 跳过空格
+                while i < len(line) and line[i] == ' ':
+                    i += 1
+            elif i + 1 < len(line) and line[i:i+1] == ' ':
+                # 检查是否是缩进空格
+                spaces_count = 0
+                j = i
+                while j < len(line) and line[j] == ' ':
+                    spaces_count += 1
+                    j += 1
+
+                if spaces_count >= 2:  # Windows tree通常使用2个空格作为缩进
+                    indent_count += 1
+                    i = j
+                else:
+                    break
+            else:
+                break
+
+        # 提取项目名称
+        item_name = line[i:].strip()
+
+        # 移除Windows tree分支指示符
+        if item_name.startswith('└─'):
+            item_name = item_name[2:].strip()
+        elif item_name.startswith('├─'):
+            item_name = item_name[2:].strip()
+
+        # 如果项目名称为空或只包含垂直线，则忽略该行
+        if not item_name or item_name in ['│', '|']:
+            return None, None
+
+        return indent_count, item_name
+    else:
+        # Linux tree格式处理 (原有逻辑)
+        indent_count = 0
+        i = 0
+        while i < len(line):
+            if line[i:i+4] in ['│   ', '    ']:
+                indent_count += 1
+                i += 4
+            else:
+                break
+
+        # 提取项目名称
+        item_name = line[i:].strip()
+
+        # 移除Linux tree分支指示符
+        if item_name.startswith('├── '):
+            item_name = item_name[4:]
+        elif item_name.startswith('└── '):
+            item_name = item_name[4:]
+        elif item_name.startswith('│   ├── ') or item_name.startswith('│   └── '):
+            item_name = item_name[8:]
+
+        return indent_count, item_name
 
 
 def create_file_structure(tree_output, output_dir):
@@ -77,6 +146,14 @@ def create_file_structure(tree_output, output_dir):
 
     # 解析tree输出并创建结构
     lines = tree_output.strip().split('\n')
+
+    # 处理Windows tree输出的根目录行
+    if lines and (lines[0].strip().endswith(':.') or lines[0].strip().endswith(':.')):
+        # 移除Windows格式的根目录行（如 "E:."）
+        root_dir = lines[0].strip()
+        lines = lines[1:]
+        print(f"检测到Windows tree输出格式，根目录: {root_dir}")
+
     path_stack = [output_path]
 
     # 第一遍：通过检查是否有子项来识别目录
@@ -105,6 +182,8 @@ def create_file_structure(tree_output, output_dir):
             path_stack.pop()
 
         # 创建项目（文件或目录）
+        # 处理Windows tree输出中可能存在的空格
+        item_name = item_name.strip()
         current_path = path_stack[-1] / item_name
 
         # 检查是否是目录
@@ -123,8 +202,12 @@ def main():
         description='根据tree命令输出重建文件结构',
         epilog='''
 示例:
-  python tree_to_file.py -i tree输出.txt -o 重建目录
-  tree /路径/到/目录 | python tree_to_file.py -o 重建目录
+  # Linux示例
+  python tree_to_file.py -i sample_tree_output_linux.txt -o output
+  tree /路径/到/目录 | python tree_to_file.py -o output
+
+  # Windows示例
+  python tree_to_file.py -i sample_tree_output_windows.txt -o output
 
 注意: 此脚本只创建目录和文件结构，不创建文件内容。
 '''
