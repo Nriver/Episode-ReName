@@ -1,0 +1,12 @@
+.
+├── 测试子目录
+│   ├── S01E03.mp4
+│   ├── S01E03.nfo
+│   ├── S01E04 aaaaa.mp4
+│   └── S01E04 aaaaa.nfo
+├── S03E01-mediainfo.json
+├── S03E01.mp4
+├── S03E01.nfo
+├── S03E02-mediainfo.json
+├── S03E02.mp4
+└── S03E02.nfo
