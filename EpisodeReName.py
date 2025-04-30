@@ -66,10 +66,6 @@ rename_delay = 0
 rename_overwrite = True
 rename_interval = 0  # 每次重命名操作之间的间隔时间（秒）
 
-# logger.add(os.path.join(application_path, 'app.log'))
-# logger.info(sys.argv)
-# print(sys.argv)
-
 # # 测试
 # if not getattr(sys, 'frozen', False) and len(sys.argv) == 1:
 #     # 直接运行的目标路径
@@ -86,11 +82,11 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
 
     # 读取命令行目标路径
     target_path = sys.argv[1]
-    logger.info(f"{'target_path', target_path}")
+    logger.info(f"目标路径: {target_path}")
     if len(sys.argv) > 2:
         # 重命名延迟(秒) 配合qb使用的参数, 默认为0秒
         rename_delay = int(sys.argv[2])
-        logger.info(f"{'rename_delay', rename_delay}")
+        logger.info(f"重命名延迟: {rename_delay}秒")
     name_format = 'S{season}E{ep}'
     # name_format = '{series} - S{season}E{ep}'
     # name_format = 'S{season}E{ep} - {resolution}'
@@ -101,6 +97,8 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     del_empty_folder = 0
     priority_match = 0
     ignore_file_count_check = 0
+    log_to_file = 0  # 默认关闭日志文件输出
+    log_level = 'INFO'  # 默认日志等级
 else:
     # 新的argparse解析
     # python EpisodeReName.py --path E:\test\极端试验样本\S1 --delay 1 --overwrite 1
@@ -120,7 +118,7 @@ else:
     ap.add_argument(
         '--overwrite',
         required=False,
-        help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.txt',
+        help='强制重命名, 默认为1开启覆盖模式, 0为不覆盖, 遇到同名文件会跳过, 结果输出到error.log',
         type=int,
         default=1,
     )
@@ -193,6 +191,21 @@ else:
         type=float,
         default=0,
     )
+    ap.add_argument(
+        '--log_to_file',
+        required=False,
+        help='是否将日志输出到文件，默认为0关闭，1为开启。关闭时只在控制台显示日志',
+        type=int,
+        default=0,
+    )
+    ap.add_argument(
+        '--log_level',
+        required=False,
+        help='设置日志输出等级，可选值: DEBUG, INFO, WARNING, ERROR, CRITICAL。默认为INFO',
+        type=str,
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        default='INFO',
+    )
 
     args = vars(ap.parse_args())
     target_path = args['path']
@@ -208,9 +221,53 @@ else:
     priority_match = args['priority_match']
     ignore_file_count_check = args['ignore_file_count_check']
     rename_interval = args['rename_interval']
+    log_to_file = args['log_to_file']
+    log_level = args['log_level']
 
     if parse_resolution:
         name_format = 'S{season}E{ep} - {resolution}'
+
+# 配置日志输出 - 在解析完命令行参数后设置
+# 首先移除默认的处理器
+try:
+    logger.remove()
+except:
+    pass
+
+# 添加控制台处理器，使用指定的日志等级
+try:
+    logger.add(
+        sys.stdout,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <blue>PID:{process}</blue> | <level>{message}</level>",
+        level=log_level,
+        colorize=True,
+    )
+    logger.debug(f"日志等级已设置为: {log_level}")
+except Exception as e:
+    print(f"设置控制台日志等级失败: {str(e)}")
+
+# 如果启用了文件日志，添加文件处理器
+if log_to_file:
+    log_file = os.path.join(application_path, 'app.log')
+    try:
+        logger.add(
+            log_file,
+            format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | PID:{process} | {message}",
+            rotation="10 MB",  # 日志文件达到10MB时轮转
+            retention="1 month",  # 保留1个月的日志
+            compression="zip",  # 压缩旧日志
+            level=log_level,
+            encoding="utf-8",
+        )
+        logger.info(f"日志文件已启用: {log_file}，日志等级: {log_level}")
+    except Exception as e:
+        logger.error(f"设置文件日志失败: {str(e)}")
+
+logger.info(f"程序启动 - 版本: {os.path.basename(sys.argv[0])}")
+logger.info(f"命令行参数: {sys.argv}")
+logger.info(f"运行环境: {platform.system()} {platform.release()}")
+logger.info(f"Python版本: {platform.python_version()}")
+logger.info(f"工作目录: {application_path}")
 
 if not target_path:
     # 没有路径参数直接退出
@@ -241,7 +298,8 @@ system = platform.system()
 
 
 if os.path.isdir(target_path):
-    logger.info(f"{'文件夹处理'}")
+    logger.info(f"开始处理文件夹: {target_path}")
+    logger.info(f"处理模式: 批量处理")
 
     # 遍历文件夹
     for root, dirs, files in os.walk(target_path, topdown=False):
@@ -270,7 +328,7 @@ if os.path.isdir(target_path):
                 season = get_season_cascaded(file_path)
 
             resolution = get_resolution_in_name(name)
-            logger.info(f'识别结果: {season, ep}')
+            logger.info(f'文件 "{name}" 识别结果: 季={season}, 集={ep}')
             # 重命名
             if season and ep:
                 # 修正集数
@@ -292,19 +350,21 @@ if os.path.isdir(target_path):
                     for replace_old_part, replace_new_part in custom_replace_pair:
                         new_name = new_name.replace(replace_old_part, replace_new_part)
 
-                logger.info(f'{new_name}')
+                logger.info(f'重命名为: {new_name}')
                 if move_up_to_season_folder:
                     new_path = season_path + '/' + new_name
+                    logger.info(f'目标位置: 季文件夹 ({season_path})')
                 else:
                     new_path = parent_folder_path + '/' + new_name
+                    logger.info(f'目标位置: 原文件夹 ({parent_folder_path})')
                 file_lists.append([format_path(file_path), format_path(new_path)])
             else:
                 logger.info(f"{'未能识别 season 和 ep'}")
                 unknown.append(file_path)
 
 else:
-    logger.info(f"{'单文件处理'}")
-    logger.info(f'{target_path}')
+    logger.info(f"开始处理文件: {target_path}")
+    logger.info(f"处理模式: 单文件处理")
     file_path = get_absolute_path(target_path)
     file_full_name = os.path.basename(file_path)
     file_name, ext = get_file_name_ext(file_full_name)
@@ -316,6 +376,7 @@ else:
             season = get_season_cascaded(file_path)
 
         resolution = get_resolution_in_name(file_name)
+        logger.info(f'文件 "{file_full_name}" 识别结果: 季={season}, 集={ep}')
         if season and ep:
             # 修正集数
             ep = ep_offset_patch(file_path, ep, application_path)
@@ -335,11 +396,13 @@ else:
                 for replace_old_part, replace_new_part in custom_replace_pair:
                     new_name = new_name.replace(replace_old_part, replace_new_part)
 
-            logger.info(f'{new_name}')
+            logger.info(f'重命名为: {new_name}')
             if move_up_to_season_folder:
                 new_path = format_path(season_path + '/' + new_name)
+                logger.info(f'目标位置: 季文件夹 ({season_path})')
             else:
                 new_path = format_path(parent_folder_path + '/' + new_name)
+                logger.info(f'目标位置: 原文件夹 ({parent_folder_path})')
 
             file_lists.append([file_path, new_path])
         else:
@@ -347,54 +410,80 @@ else:
             unknown.append(file_path)
 
 if unknown:
-    logger.info(f"{'----- 未识别文件 -----'}")
-    for x in unknown:
-        logger.info(f'{x}')
-    logger.info(f"{'--------------------'}")
+    logger.warning(f"----- 未能识别的文件 ({len(unknown)}) -----")
+    for i, x in enumerate(unknown, 1):
+        logger.warning(f'{i}. {x}')
+    logger.warning(f"--------------------")
 
 if rename_delay:
     # 自动运行改名
-    logger.info(f"{'重命名延迟等待中...'}")
+    logger.info(f"重命名延迟等待中... {rename_delay}秒")
     # 程序运行太快 会导致重命名失败 估计是文件被锁了 这里故意加个延迟(秒)
     time.sleep(rename_delay)
 
 
 if file_lists:
-    logger.info(f"{'----- 重命名文件列表 -----'}")
-    for x in file_lists:
-        logger.info(f'{x}')
-    logger.info(f"{'-----------------------'}")
+    logger.info(f"----- 待重命名文件列表 ({len(file_lists)}) -----")
+    for i, (old, new) in enumerate(file_lists, 1):
+        logger.info(f'{i}. {old} -> {new}')
+    logger.info(f"-----------------------")
 
 # 检查旧的文件数量和新的文件数量是否一致，防止文件被覆盖
 new_set = set([x[1] for x in file_lists])
 if len(new_set) != len(file_lists) and not ignore_file_count_check:
-    logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。请检查文件命名'}")
+    logger.warning(f"安全检查: 旧文件数量({len(file_lists)})和新文件数量({len(new_set)})不一致，可能会导致文件被覆盖")
     new_list = [x[1] for x in file_lists]
+    duplicate_files = []
     for file in new_set:
-        if new_list.count(file) > 1:
-            logger.warning(f"{'重复文件', file}")
-    logger.info(f"{'如需忽略此检查，请使用 --ignore_file_count_check 1 参数'}")
+        count = new_list.count(file)
+        if count > 1:
+            duplicate_files.append((file, count))
+
+    if duplicate_files:
+        logger.warning(f"检测到{len(duplicate_files)}个重复目标文件:")
+        for file, count in duplicate_files:
+            logger.warning(f"  - {file} (重复{count}次)")
+
+    logger.info(f"如需忽略此检查并继续执行，请使用 --ignore_file_count_check 1 参数")
+    logger.error(f"程序已停止执行，未进行任何文件重命名")
     sys.exit()
 elif len(new_set) != len(file_lists) and ignore_file_count_check:
-    logger.warning(f"{'旧文件数量和新文件数量不一致，可能会被覆盖。已启用忽略检查，继续执行'}")
+    logger.warning(f"安全检查: 旧文件数量({len(file_lists)})和新文件数量({len(new_set)})不一致，可能会导致文件被覆盖")
+    logger.warning(f"已启用忽略检查(--ignore_file_count_check 1)，将继续执行重命名操作")
+
     new_list = [x[1] for x in file_lists]
+    duplicate_files = []
     for file in new_set:
-        if new_list.count(file) > 1:
-            logger.warning(f"{'重复文件', file}")
+        count = new_list.count(file)
+        if count > 1:
+            duplicate_files.append((file, count))
+
+    if duplicate_files:
+        logger.warning(f"以下文件将被多次覆盖:")
+        for file, count in duplicate_files:
+            logger.warning(f"  - {file} (将被覆盖{count-1}次)")
 
 # 错误记录
 error_logs = []
 
-for old, new in file_lists:
+logger.info(f"开始执行重命名操作 (共{len(file_lists)}个文件)...")
+
+for index, (old, new) in enumerate(file_lists, 1):
     # 添加每次重命名操作之间的间隔时间
     if rename_interval > 0:
-        time.sleep(rename_interval)
+        if index > 1:  # 第一个文件不需要等待
+            logger.debug(f"重命名间隔等待 {rename_interval}秒...")
+            time.sleep(rename_interval)
+
+    logger.info(f"[{index}/{len(file_lists)}] 重命名: {os.path.basename(old)} -> {os.path.basename(new)}")
 
     if not rename_overwrite:
         # 如果设置不覆盖 遇到已存在的目标文件不强制删除 只记录错误
         if os.path.exists(new):
+            error_message = f'重命名失败: 目标文件已存在 - {new}'
+            logger.warning(error_message)
             error_logs.append(
-                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} 重命名 {old} 失败, 目标文件 {new} 已经存在'
+                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} {error_message}'
             )
             continue
 
@@ -421,42 +510,96 @@ for old, new in file_lists:
             if first_match:
                 file_full_name = os.path.basename(old)
                 if not (first_match.lower() in file_full_name.lower()):
-                    logger.info('已存在文件情况下，新文件未满足第一组匹配规则，删除当前文件')
+                    logger.info(f'已存在文件情况下，新文件未满足第一组匹配规则，删除当前文件: {old}')
                     try:
                         os.remove(old)
-                    except:
-                        pass
+                        logger.info(f"✓ 文件删除成功: {old}")
+                    except Exception as e:
+                        logger.error(f"文件删除失败: {old}, 错误: {str(e)}")
                     continue
                 else:
                     logger.info('满足优先规则，重命名当前文件')
 
     # 默认遇到文件存在则强制删除已存在文件
     try:
-        # 检测文件能否重命名 报错直接忽略
+        # 检测文件能否重命名
         tmp_name = new + '.new'
-        os.rename(old, tmp_name)
+        logger.info(f"步骤1: 重命名 {old} -> {tmp_name} (临时文件)")
+        try:
+            os.rename(old, tmp_name)
+            logger.info(f"✓ 临时重命名成功: {old} -> {tmp_name}")
+        except Exception as e:
+            logger.error(f"临时重命名失败: {old} -> {tmp_name}, 错误: {str(e)}")
+            raise  # 重新抛出异常，让外层的异常处理捕获
 
         # 目标文件已存在, 先删除
         if os.path.exists(new):
-            os.remove(new)
+            logger.info(f"步骤2: 删除已存在的目标文件 {new}")
+            try:
+                os.remove(new)
+                logger.info(f"✓ 目标文件删除成功: {new}")
+            except Exception as e:
+                logger.error(f"目标文件删除失败: {new}, 错误: {str(e)}")
+                raise  # 重新抛出异常，让外层的异常处理捕获
 
         # 临时文件重命名
-        os.rename(tmp_name, new)
-    except:
-        pass
+        logger.info(f"步骤3: 重命名 {tmp_name} -> {new} (最终文件)")
+        try:
+            os.rename(tmp_name, new)
+            logger.info(f"✓ 重命名成功: {os.path.basename(old)} -> {os.path.basename(new)}")
+        except Exception as e:
+            logger.error(f"最终重命名失败: {tmp_name} -> {new}, 错误: {str(e)}")
+            # 尝试恢复原始文件
+            try:
+                logger.warning(f"尝试恢复原始文件: {tmp_name} -> {old}")
+                os.rename(tmp_name, old)
+                logger.info(f"✓ 原始文件恢复成功: {tmp_name} -> {old}")
+            except Exception as recover_error:
+                logger.error(f"原始文件恢复失败: {tmp_name} -> {old}, 错误: {str(recover_error)}")
+            raise  # 重新抛出原始异常，让外层的异常处理捕获
+    except Exception as e:
+        error_message = f"重命名失败: {os.path.basename(old)} -> {os.path.basename(new)}, 错误: {str(e)}"
+        logger.error(error_message)
+        error_logs.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} {error_message}')
 
 if del_empty_folder:
     logger.info('删除空的子目录')
     delete_empty_dirs(target_path)
 
 if error_logs:
-    error_file = os.path.join(application_path, 'error.txt')
-    logger.warning(f'部分文件重命名失败, 请检查{error_file}')
-    if not os.path.exists(error_file):
-        f = open(error_file, 'w', encoding='utf-8')
-        f.write('\n'.join(error_logs))
-    else:
-        f = open(error_file, 'a', encoding='utf-8')
-        f.write('\n' + '\n'.join(error_logs))
+    # 在日志中显示前5个错误
+    if len(error_logs) > 0:
+        logger.warning(f"部分文件重命名失败 ({len(error_logs)}个)")
+        logger.warning("错误摘要 (前5个):")
+        for i, error in enumerate(error_logs[:5], 1):
+            logger.warning(f"  {i}. {error}")
+        if len(error_logs) > 5:
+            logger.warning(f"  ... 还有 {len(error_logs) - 5} 个错误未显示")
 
-logger.info(f"{'运行完毕'}")
+    # 如果启用了日志文件，则写入错误日志
+    if log_to_file:
+        error_file = os.path.join(application_path, 'error.log')
+        logger.warning(f'详细错误信息已记录到: {error_file}')
+
+        try:
+            if not os.path.exists(error_file):
+                with open(error_file, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(error_logs))
+            else:
+                with open(error_file, 'a', encoding='utf-8') as f:
+                    f.write('\n' + '\n'.join(error_logs))
+            logger.info(f"错误日志已保存到: {error_file}")
+        except Exception as e:
+            logger.error(f"写入错误日志文件失败: {str(e)}")
+    else:
+        logger.warning(f"日志文件输出已禁用，错误信息仅在控制台显示")
+
+# 统计处理结果
+success_count = len(file_lists) - len(error_logs) if file_lists else 0
+logger.info(f"处理统计:")
+logger.info(f"  - 总文件数: {len(file_lists) if file_lists else 0}")
+logger.info(f"  - 成功重命名: {success_count}")
+logger.info(f"  - 失败: {len(error_logs) if error_logs else 0}")
+logger.info(f"  - 未识别: {len(unknown) if unknown else 0}")
+
+logger.info(f"程序运行完毕 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

@@ -94,6 +94,12 @@ D:\Test\EpisodeReName.exe "%D" 15
 D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 ```
 
+如果需要更详细的日志输出，可以添加日志参数：
+
+```
+D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
+```
+
 具体参数请看下面的`复杂参数模式`章节
 
 # 使用场景3 - 📥 群晖套件版qbittorrent下载后自动重命名
@@ -106,6 +112,12 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
 
 ```
 /usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%D" --delay 15 --overwrite 1
+```
+
+如需更详细的日志输出，可以添加日志参数：
+
+```
+/usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
 ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
@@ -136,6 +148,12 @@ docker cp custom_rules.py qbittorrentee:/
 
 ```
 python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1
+```
+
+如需更详细的日志输出，可以添加日志参数：
+
+```
+python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
 ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
@@ -188,6 +206,24 @@ EpisodeReName.exe --path D:\down\XXX\s2 --ignore_file_count_check 1
 EpisodeReName.exe --path D:\down\XXX\s2 --rename_interval 0.1
 ```
 
+控制是否将日志输出到文件，默认为0关闭，1为开启。关闭时只在控制台显示日志
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --log_to_file 1
+```
+
+设置日志输出等级，可选值: DEBUG, INFO, WARNING, ERROR, CRITICAL。默认为INFO
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --log_level DEBUG
+```
+
+同时设置日志输出到文件并使用DEBUG等级，可以获取更详细的日志信息
+
+```
+EpisodeReName.exe --path D:\down\XXX\s2 --log_to_file 1 --log_level DEBUG
+```
+
 使用 `-h` 参数查看支持的参数
 
 ```
@@ -220,6 +256,10 @@ D:\Test\EpisodeReName.exe -h
                         忽略旧文件数量和新文件数量不一致的检查，即使可能会覆盖文件也继续执行。默认为0不开启, 1是开启
   --rename_interval RENAME_INTERVAL
                         每次重命名操作之间的间隔时间(秒)，用于网盘挂载等情况下避免重命名太快而客户端未及时响应导致重命名异常。默认为0秒不等待
+  --log_to_file LOG_TO_FILE
+                        是否将日志输出到文件，默认为0关闭，1为开启。关闭时只在控制台显示日志
+  --log_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        设置日志输出等级，可选值: DEBUG, INFO, WARNING, ERROR, CRITICAL。默认为INFO
 ```
 
 # 使用场景6 - 🐧 Linux终端运行

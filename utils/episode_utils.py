@@ -133,39 +133,38 @@ def extract_ep_from_outside_brackets(file_name, bracket_pairs, res):
                 break
 
     def extract_ending_ep(s):
-        logger.info(f"{'找末尾是数字的子字符串'}")
+        """从字符串中提取末尾是数字的部分作为集数"""
+        logger.debug(f"尝试从字符串中提取末尾数字: '{s}'")
         s = s.strip()
-        # logger.info(f'{s}')
         ep = None
 
         # 兼容v2和.5格式 不兼容 9.33 格式
-        # 12.5
-        # 13.5
-        # 10v2
-        # 10.5v2
+        # 例如: 12.5, 13.5, 10v2, 10.5v2
         pat = r'(\d{1,4}(\.5)?)[Vv]?\d?'
-        ep = None
         res_sub = re.search(pat, s)
         if res_sub:
-            logger.info(f'{res_sub}')
             ep = res_sub.group(1)
+            logger.debug(f"匹配到数字+可能的v2格式: {ep}, 匹配: {res_sub.group(0)}")
             return ep
 
         # 兼容END命名
+        # 例如: 12END, 12_END, 12 END
         pat = r'(\d{1,4}(\.5)?)\s?(?:_)?(?i:END)?'
-        ep = None
         res_sub = re.search(pat, s)
         if res_sub:
-            logger.info(f'{res_sub}')
             ep = res_sub.group(1)
+            logger.debug(f"匹配到END格式: {ep}, 匹配: {res_sub.group(0)}")
             return ep
 
+        # 匹配字符串末尾的数字
         pat = r'\d{1,4}(\.5)?$'
         res_sub = re.search(pat, s)
         if res_sub:
-            logger.info(f'{res_sub}')
             ep = res_sub.group(0)
+            logger.debug(f"匹配到末尾数字: {ep}")
             return ep
+
+        logger.debug(f"未能从字符串中提取到集数: '{s}'")
         return ep
 
     if not ep:
@@ -189,11 +188,17 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
     Returns:
         tuple: (season, ep) 季数和集数
     """
-    logger.info(f"{'解析文件', file_path}")
+    logger.info(f"开始解析文件: {file_path}")
 
     # 去掉ignore文件中忽略的字符串，防止解析错误
+    original_path = file_path
     for x in ignores:
-        file_path = file_path.replace(x, '')
+        if x in file_path:
+            file_path = file_path.replace(x, '')
+            logger.debug(f"应用忽略规则，移除字符串: '{x}'")
+
+    if original_path != file_path:
+        logger.debug(f"应用忽略规则后的路径: {file_path}")
 
     season = None
     ep = None
@@ -214,12 +219,15 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
     # 尝试从标准命名格式中提取季数和集数
     season, ep = extract_season_and_ep_from_standard_patterns(file_name, force_rename)
     if season is not None and ep is not None:
+        logger.info(f"从标准命名格式中提取到季数和集数: S{season}E{ep}")
         return season, ep
 
+    # 从父级目录获取季数
     season = get_season_cascaded(parent_folder_path)
-
-    # 获取不到季数 退出
-    if not season:
+    if season:
+        logger.debug(f"从父级目录获取到季数: {season}")
+    else:
+        logger.warning(f"无法从父级目录获取季数，退出解析")
         return None, None
 
     # 根据文件名获取集数
@@ -230,19 +238,23 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
     for starts_str, rules in starts_with_rules:
         if file_name.startswith(starts_str):
             use_custom_rule = True
+            logger.debug(f"文件名满足特殊规则前缀: '{starts_str}'")
             for rule in rules:
                 try:
+                    logger.debug(f"尝试应用特殊规则: {rule}")
                     res = re.findall(rule, file_name)
                     if res:
-                        logger.info(f"{'根据特殊规则找到了集数'}")
                         ep = res[0]
                         season = str(int(season)).zfill(2)
                         ep = ep_format(ep)
+                        logger.info(f"根据特殊规则找到了集数: S{season}E{ep}, 规则: {rule}")
                         return season, ep
                 except Exception as e:
-                    logger.info(f'{e}')
+                    logger.error(f"应用特殊规则时出错: {str(e)}")
+
     # 如果满足特殊规则还没找到ep 直接返回空
     if use_custom_rule and not ep:
+        logger.warning(f"文件名满足特殊规则前缀，但未能提取到集数: {file_name}")
         return None, None
 
     # 其它不在特殊规则的继续往下正常查找匹配
@@ -285,7 +297,7 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
             break
 
     if not ep:
-        logger.info(f"{'括号内未识别, 开始寻找括号外内容'}")
+        logger.info(f"括号内未识别到集数，开始寻找括号外内容")
         # 把括号当分隔符排除掉括号内的文字
         pat = ''
         for bracket_pair in bracket_pairs:
@@ -293,14 +305,15 @@ def get_season_and_ep(file_path, ignores, force_rename=0):
         pat = pat[:-1]
         # 兼容某些用 - 分隔的文件
         pat += r'|\-|\_'
-        logger.info(f'pat {pat}')
+        logger.debug(f'使用分隔符模式: {pat}')
+
         res = re.split(pat, file_name)
         # 过滤空字符串
         res = list(filter(None, res))
         # 从后向前查找数字, 一般集数在剧集名称后面, 防止剧集有数字导致解析出问题
         res = res[::-1]
 
-        # logger.info(f'{res}')
+        logger.debug(f'分割后的文件名部分: {res}')
 
         # 从括号外内容中提取集数
         season_from_outside, ep_from_outside = extract_ep_from_outside_brackets(file_name, bracket_pairs, res)
@@ -327,27 +340,39 @@ def ep_offset_patch(file_path, ep, application_path):
     Returns:
         str: 修正后的集数
     """
+    logger.debug(f"开始进行集数修正，原始集数: {ep}")
+
     # 多季集数修正
     # 20220721 修改集数修正修正规则：可以用 + - 符号标记修正数值, 表达更直观
     b = os.path.dirname(file_path.replace('\\', '/'))
     offset_str = None
+
+    # 向上查找目录，寻找all.txt文件
     while b:
         if offset_str:
             break
         if not '/' in b:
             break
+
         b, fo = b.rsplit('/', 1)
         offset_str = None
+
         if get_season(fo):
+            logger.debug(f"检查季文件夹是否有集数修正文件: {b}/{fo}")
             try:
                 for fn in os.listdir(b + '/' + fo):
                     if fn.lower() != 'all.txt':
                         continue
-                    with open(b + '/' + fo + '/' + fn, encoding='utf-8') as f:
+
+                    all_txt_path = f"{b}/{fo}/{fn}"
+                    logger.debug(f"找到集数修正文件: {all_txt_path}")
+
+                    with open(all_txt_path, encoding='utf-8') as f:
                         offset_str = f.read()
+                        logger.info(f"从 {all_txt_path} 读取到集数修正值: {offset_str}")
                         break
             except Exception as e:
-                logger.info(f"{'集数修正报错了', e}")
+                logger.error(f"读取集数修正文件时出错: {str(e)}")
                 return ep
     # 没有找到all.txt 尝试寻找qb-rss-manager的配置文件
     # 1. config_ern.json 配置
@@ -385,55 +410,80 @@ def ep_offset_patch(file_path, ep, application_path):
     if offset_str:
         try:
             offset_str = offset_str.strip().replace(' ', '')
+
             if '|' not in offset_str:
-                logger.info('单一数字类型的offset')
+                logger.info(f'单一数字类型的offset: {offset_str}')
                 # 直接取整数, 正数为减少, 负数是增加
                 offset = int(offset_str)
             else:
-                logger.info('多组数据的offset解析')
+                logger.info(f'多组数据的offset解析: {offset_str}')
                 # 和 QRM 多组匹配对应的多组offset
                 # 比如: 格式 `12|0|-11` 第一组集数减12, 第二组不变, 第三组加11
 
                 if not qrm_config:
                     logger.info('未获取到QRM的配置，默认取第一个offset')
                     offset = int(offset_str.split('|')[0].strip())
+                    logger.debug(f'使用第一个offset值: {offset}')
                 else:
                     # 查找QRM配置匹配的组序号
                     index = 0
+                    logger.debug(f'开始查找QRM配置匹配的组序号')
+
                     for data_group in qrm_config['data_dump']['data_groups']:
                         for x in data_group['data']:
                             if format_path(x['savePath']) == format_path(season_path):
                                 try:
                                     must_contain_tmp = x['mustContain']
+                                    logger.debug(f'找到匹配的保存路径，mustContain: {must_contain_tmp}')
+
                                     if '|' not in must_contain_tmp:
+                                        logger.debug('mustContain不包含多组数据，使用默认index=0')
                                         break
                                     else:
                                         for i, keywords in enumerate(must_contain_tmp.split('|')):
-                                            if all(
-                                                [
-                                                    keyword.strip() in file_path
-                                                    for keyword in keywords.strip().split(' ')
-                                                ]
-                                            ):
-                                                index = i
-                                                break
-                                except:
-                                    pass
-                    # 获取offset
-                    offset = int(offset_str.split('|')[index].strip())
-                    logger.info(f'解析offset {offset}')
+                                            keywords_list = keywords.strip().split(' ')
+                                            logger.debug(f'检查第{i+1}组关键词: {keywords_list}')
 
+                                            if all([keyword.strip() in file_path for keyword in keywords_list]):
+                                                index = i
+                                                logger.debug(f'文件路径匹配第{i+1}组关键词，使用index={index}')
+                                                break
+                                except Exception as e:
+                                    logger.error(f'解析mustContain时出错: {str(e)}')
+
+                    # 获取offset
+                    offset_parts = offset_str.split('|')
+                    if index < len(offset_parts):
+                        offset = int(offset_parts[index].strip())
+                        logger.info(f'使用第{index+1}组offset值: {offset}')
+                    else:
+                        logger.warning(f'索引{index}超出offset分组范围，使用第一个offset')
+                        offset = int(offset_parts[0].strip())
+
+            # 处理带小数点的集数（如12.5）
             if '.' in ep:
                 ep_int, ep_tail = ep.split('.')
                 ep_int = int(ep_int)
+
+                # 只有当集数大于等于offset时才进行修正（防止负数集数）
                 if int(ep_int) >= offset:
+                    original_ep = ep
                     ep_int = ep_int - offset
                     ep = str(ep_int) + '.' + ep_tail
+                    logger.info(f"集数修正: {original_ep} -> {ep} (offset={offset})")
+                else:
+                    logger.warning(f"集数({ep_int})小于offset({offset})，不进行修正")
             else:
+                # 处理整数集数
                 ep_int = int(ep)
                 if ep_int >= offset:
+                    original_ep = ep
                     ep = str(ep_int - offset)
-        except:
+                    logger.info(f"集数修正: {original_ep} -> {ep} (offset={offset})")
+                else:
+                    logger.warning(f"集数({ep_int})小于offset({offset})，不进行修正")
+        except Exception as e:
+            logger.error(f"应用集数修正时出错: {str(e)}")
             return ep
 
     return zero_fix(ep)
