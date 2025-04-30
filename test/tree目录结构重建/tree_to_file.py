@@ -108,6 +108,10 @@ def parse_tree_line(line):
         elif item_name.startswith('├─'):
             item_name = item_name[2:].strip()
 
+        # 确保没有残留的分支指示符
+        if item_name.startswith('─'):
+            item_name = item_name[1:].strip()
+
         # 如果项目名称为空或只包含垂直线，则忽略该行
         if not item_name or item_name in ['│', '|']:
             return None, None
@@ -134,6 +138,10 @@ def parse_tree_line(line):
             item_name = item_name[4:]
         elif item_name.startswith('│   ├── ') or item_name.startswith('│   └── '):
             item_name = item_name[8:]
+
+        # 确保没有残留的分支指示符
+        if item_name.startswith('─ '):
+            item_name = item_name[2:]
 
         return indent_count, item_name
 
