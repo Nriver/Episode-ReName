@@ -41,7 +41,7 @@ def get_absolute_path(file_path):
 
 def delete_empty_dirs(root_dir):
     """
-    删除空的子目录
+    删除空的子目录，如果根目录也为空则一并删除
     :param root_dir: 根目录路径
     :return: 删除的空目录数量
     """
@@ -58,6 +58,15 @@ def delete_empty_dirs(root_dir):
                     deleted_count += 1
                 except Exception as e:
                     logger.error(f"删除空目录失败: {dir_full_path}, 错误: {str(e)}")
+
+    # 检查根目录是否为空，如果为空则删除
+    if os.path.isdir(root_dir) and not os.listdir(root_dir):
+        try:
+            logger.info(f'删除空的根目录: {root_dir}')
+            os.rmdir(root_dir)
+            deleted_count += 1
+        except Exception as e:
+            logger.error(f"删除空的根目录失败: {root_dir}, 错误: {str(e)}")
 
     if deleted_count > 0:
         logger.info(f"共删除 {deleted_count} 个空目录")
