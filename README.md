@@ -79,25 +79,22 @@ Manager 等软件刮削数据使用. 也可以配合qbitorrent下载文件后自
 2. 选项—>下载—>完成时运行外部程序—>命令行
 
 ```
-D:\Test\EpisodeReName.exe "%D" 15
+D:\Test\EpisodeReName.exe --path "%F" --delay 15 --overwrite 1 --use_folder_as_season 1
 ```
 
 参数说明
 
 - EpisodeReName工具所在路径
-- "%D"是文件下载路径, 这个一般不要修改
-- 最后的数字是执行延时, 单位是秒, 因为qb下载完成会锁住文件, 需要等一段时间来让它释放, 时间长短可自行调整
+- --path 是文件下载路径, "%F"是下载的子目录或子文件路径，比使用"%D"效果更好。
+- --delay 这个数字是执行延时, 单位是秒, 因为qb下载完成会锁住文件, 需要等一段时间来让它释放, 时间长短可自行调整。
+- --overwrite 1 是强制重命名。
+- --use_folder_as_season 是根据路径获取季数。
 
-以上为简易参数, 需要其它功能请参考下面的复杂参数模式
 
-```
-D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1
-```
-
-如果需要更详细的日志输出，可以添加日志参数：
+如果重命名遇到问题，需要更详细的日志输出来定位问题，可以添加日志参数：
 
 ```
-D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
+D:\Test\EpisodeReName.exe --path "%F" --delay 15 --overwrite 1 --use_folder_as_season 1 --log_to_file 1 --log_level DEBUG
 ```
 
 具体参数请看下面的`复杂参数模式`章节
@@ -111,13 +108,13 @@ D:\Test\EpisodeReName.exe --path "%D" --delay 15 --overwrite 1 --log_to_file 1 -
    下面填上
 
 ```
-/usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%D" --delay 15 --overwrite 1
+/usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%F" --delay 15 --overwrite 1
 ```
 
 如需更详细的日志输出，可以添加日志参数：
 
 ```
-/usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
+/usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%F" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
 ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
@@ -147,13 +144,13 @@ docker cp custom_rules.py qbittorrentee:/
    下面填上
 
 ```
-python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1
+python3 /EpisodeReName.py --path "%F" --delay 15 --use_folder_as_season 1 --overwrite 1
 ```
 
 如需更详细的日志输出，可以添加日志参数：
 
 ```
-python3 /EpisodeReName.py --path "%D" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
+python3 /EpisodeReName.py --path "%F" --delay 15 --use_folder_as_season 1 --overwrite 1 --log_to_file 1 --log_level DEBUG
 ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
