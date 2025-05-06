@@ -215,7 +215,7 @@ EpisodeReName.exe --path D:\down\XXX\s2 --log_to_file 1
 EpisodeReName.exe --path D:\down\XXX\s2 --log_level DEBUG
 ```
 
-同时设置日志输出到文件并使用DEBUG等级，可以获取更详细的日志信息
+同时设置日志输出到文件并使用DEBUG等级，可以获取更详细的日志信息，日志文件位于主程序同目录的`app.log`文件内
 
 ```
 EpisodeReName.exe --path D:\down\XXX\s2 --log_to_file 1 --log_level DEBUG
