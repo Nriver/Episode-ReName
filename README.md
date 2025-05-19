@@ -101,6 +101,8 @@ D:\Test\EpisodeReName.exe --path "%F" --delay 15 --overwrite 1 --use_folder_as_s
 
 # 使用场景3 - 📥 群晖套件版qbittorrent下载后自动重命名
 
+## DSM 6.2 及旧版本设置
+
 1. 群晖需要安装qbittorrent套件和python3套件
 2. 群晖的qb使用的是admin账户, 请将`EpisodeReName.py`和`custom_rules.py`, `utils`目录放到群晖File Station的`homes/admin`
    目录下, 或者手动通过ssh上传到`/var/services/homes/admin`目录 或 `/volume1/homes/admin`目录
@@ -116,6 +118,31 @@ D:\Test\EpisodeReName.exe --path "%F" --delay 15 --overwrite 1 --use_folder_as_s
 ```
 /usr/local/bin/python3 /var/services/homes/admin/EpisodeReName.py --path "%F" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
 ```
+
+4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
+
+## DSM 7.2 及新版本设置
+
+1. 群晖需要安装qbittorrent套件和python3套件
+2. **注意：** 新版群晖DSM 7.2默认禁用了admin账号，权限管理方式与旧版不同。应将EpisodeReName的运行文件放置在共享文件夹中（例如docker文件夹下的EpisodeRename文件夹），并在控制面板中为内部系统账号qbittorrent赋予该共享文件夹的读写权限。更多详情请参考[Issue #63](https://github.com/Nriver/Episode-ReName/issues/63)。
+
+3. 设置下载后自动运行改名，修改qb配置: `下载` 勾选 `Torrent 完成时运行外部程序`,
+   下面填上
+
+   群晖7.2的python3命令不需要输入完整路径，可直接使用：
+   ```
+   python3 /volume1/docker/EpisodeRename/EpisodeReName.py --path "%F" --delay 15 --overwrite 1
+   ```
+
+   如果您安装了特定版本的Python套件（如python3.11），也可以使用：
+   ```
+   /usr/local/bin/python3.11 /volume1/docker/EpisodeRename/EpisodeReName.py --path "%F" --delay 30 --overwrite 1
+   ```
+
+   如需更详细的日志输出，可以添加日志参数：
+   ```
+   python3 /volume1/docker/EpisodeRename/EpisodeReName.py --path "%F" --delay 15 --overwrite 1 --log_to_file 1 --log_level DEBUG
+   ```
 
 4. 取消做种，修改qb配置: `BitTorrent` 的 `做种限制` 改成 当分享率达到0，当做种时间达到0分钟然后暂停torrent
 
